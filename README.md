@@ -186,3 +186,6 @@ Proyecto realizado por estudiantes del segundo semestre de la carrera de Estadí
 - Zadquiel Nieves
 
 - Sebastian Valbuena
+
+### Fecha de vencimiento
+**Junio de 2026**
