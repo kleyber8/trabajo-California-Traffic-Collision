@@ -10,7 +10,8 @@ def mostrar_querys_filtrado():
         collisions = obtener_datos("collision_lite")
         parties = obtener_datos("parties_lite")
         case_ids = obtener_datos("case_ids_lite")
-        victims = obtener_datos("victims_lite")   
+        victims = obtener_datos("victims_lite") 
+        involved_victims = obtener_datos("involved_victims_part_0")  
 
     st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Panel de Control</h1>", unsafe_allow_html=True)
     st.divider()

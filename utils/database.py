@@ -39,7 +39,9 @@ def obtener_datos(nombre_tabla):
         "case_ids_lite": "1L1y1xijvDHnod8XMrb1vU54KYPXbhmza",
         "collision_lite":"1wj3MI6odBf2zikvuRm2xAuxnXX2UV-Zx",
         "parties_lite":"1javvbygFD4Cha8arZd1hoFUuuTbx2r2n",
-        "victims_lite":"1buJmDwvaHUdSf640Wen93BLqCD-vlz1g"
+        "victims_lite":"1buJmDwvaHUdSf640Wen93BLqCD-vlz1g",
+        "involved_victims_part_0":"1bDpp9EymHAd8Ubx4lngrgzrtCJL27XGD"
+
     }
     
     drive = iniciar_sesion_drive()
