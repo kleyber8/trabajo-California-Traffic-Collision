@@ -9,6 +9,7 @@ GOLD = "#D4AF37"
 COFFEE = "#4B3621"
 DARK_BG = "#121212"
 TEXT_COLOR = "#FFFFFF"
+MUTED_TEXT = "#CCCCCC"
 
 def render_severidad_vs_equipo(df_victims):
     """Barras agrupadas: severidad vs equipo de seguridad (top 5)."""

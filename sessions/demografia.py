@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
-from utils.database import obtener_datos
+from utils.database import obtener_datos_procesados_con_cache
 from components.demographics_charts import render_piramide_poblacional, render_distribucion_sexo
 
-def mostrar_demografia():
+def mostrar_demografia(anio="Todos"):
     # Encabezado principal
     st.markdown("""
     <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
@@ -19,15 +19,16 @@ def mostrar_demografia():
     </div>
     """, unsafe_allow_html=True)
 
-    # Cargar datos
-    with st.spinner("Cargando datos de víctimas..."):
-        df_victims = obtener_datos("victims")
-        df_collisions = obtener_datos("collisions")
+    # 2. CARGA ULTRA RÁPIDA: Traemos los datos cruzados y convertidos directos de RAM
+    with st.spinner("Cargando datos demográficos optimizados..."):
+        df_collisions, _, df_victims, min_date, max_date = obtener_datos_procesados_con_cache()
 
-    if df_victims.empty or df_collisions.empty:
-        st.error("No se pudieron cargar los datos. Verifica la conexión o los archivos fuente.")
+    if df_collisions.empty or df_victims.empty:
+        st.error("No se pudieron cargar los datos. Verifica los archivos fuente en la carpeta 'data/'.")
         return
-
+    
+    df_victims_filtrado = df_victims.copy()
+        
     # Estilo CSS para el slider (color dorado)
     st.markdown("""
     <style>
@@ -50,40 +51,6 @@ def mostrar_demografia():
         }
     </style>
     """, unsafe_allow_html=True)
-
-    # Filtro por fecha
-    if 'collision_date' in df_collisions.columns:
-        df_collisions['collision_date'] = pd.to_datetime(df_collisions['collision_date'], errors='coerce')
-        min_date = df_collisions['collision_date'].min().date()
-        max_date = df_collisions['collision_date'].max().date()
-
-        fecha_inicio_default = pd.to_datetime('2018-01-01').date()
-        fecha_fin_default    = pd.to_datetime('2021-12-31').date()
-
-        if fecha_inicio_default < min_date:
-            fecha_inicio_default = min_date
-        if fecha_fin_default > max_date:
-            fecha_fin_default = max_date
-
-        st.markdown("### 🗓️ Filtrar por Fecha de Colisión")
-        fecha_inicio, fecha_fin = st.slider(
-            "Seleccione el rango:",
-            min_value=min_date,
-            max_value=max_date,
-            value=(fecha_inicio_default, fecha_fin_default),
-            format="YYYY-MM-DD"
-        )
-
-        mask_collisions = (df_collisions['collision_date'].dt.date >= fecha_inicio) & \
-                          (df_collisions['collision_date'].dt.date <= fecha_fin)
-        df_collisions_filtrado = df_collisions[mask_collisions]
-
-        casos_validos = df_collisions_filtrado['case_id'].unique()
-        df_victims_filtrado = df_victims[df_victims['case_id'].isin(casos_validos)]
-    else:
-        st.warning("No se encontró la columna 'collision_date'. Se muestran todos los datos sin filtro de fecha.")
-        df_victims_filtrado = df_victims
-        fecha_inicio, fecha_fin = None, None
 
     # Métricas resumen
     total_victimas = len(df_victims_filtrado)

@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from utils.database import obtener_datos
+from utils.database import obtener_datos_procesados_con_cache
 from components.risk_factors_charts import (
     render_severidad_vs_equipo,
     render_tendencia_alcohol_anual,
@@ -22,17 +22,13 @@ def mostrar_factores_riesgo():
     </div>
     """, unsafe_allow_html=True)
 
-    with st.spinner("Cargando datos..."):
-        collisions = obtener_datos("collisions")
-        parties = obtener_datos("parties")
-        victims = obtener_datos("victims")
+    with st.spinner("Cargando y procesando datos optimizados..."):
+        df_merged, df_victims_merged, victims, _, _ = obtener_datos_procesados_con_cache()
 
-    if collisions.empty or parties.empty or victims.empty:
+    # Validación de seguridad
+    if df_merged.empty or df_victims_merged.empty or victims.empty:
         st.error("No se pudieron cargar los datos necesarios.")
         return
-
-    df_merged = collisions.merge(parties, on='case_id', how='left', suffixes=('', '_party'))
-    df_victims_merged = victims.merge(collisions[['case_id', 'collision_severity', 'type_of_collision']], on='case_id', how='left')
 
     total_acc = len(df_merged)
     total_vic = len(df_victims_merged)
@@ -64,9 +60,13 @@ def mostrar_factores_riesgo():
             victims_f1 = victims_f1[victims_f1['victim_degree_of_injury'].isin(selected_severidad)]
         if selected_equipos:
             victims_f1 = victims_f1[victims_f1['victim_safety_equipment_1'].isin(selected_equipos)]
-        df_victims_f1 = victims_f1.merge(collisions[['case_id', 'collision_severity']], on='case_id', how='left')
+        df_victims_f1 = victims_f1.merge(
+            df_merged[['case_id', 'collision_severity']].drop_duplicates(), 
+            on='case_id', 
+            how='left'
+        )
         st.plotly_chart(render_severidad_vs_equipo(df_victims_f1), use_container_width=True)
-
+        
     with tab2:
         st.subheader("Filtros")
         col_a1, col_a2 = st.columns(2)

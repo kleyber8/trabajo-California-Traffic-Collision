@@ -59,6 +59,12 @@ with st.sidebar:
         "Seleccione una página:",
         ["Presentación", "Introducción","Diccionario de datos", "Perfil Demográfico","Criticidad Temporal","Delta Lake", "Delimitacion de datos","Querys", "Querys de filtrado", "Factores de Riesgo"]
     )
+    
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("### Filtrado por año")
+    
+    # Filtro de Año por defecto (Evita traer todo el histórico histórico junto si no se desea)
+    filtro_anio = st.selectbox("Año de análisis:", ["Todos", 2018, 2019, 2020, 2021], index=0)
 
 # Lógica de "Páginas"
 # Si la opción es Introducción, NO se ejecuta nada de la Presentación
@@ -73,7 +79,7 @@ if opcion == "Presentación":
     """, unsafe_allow_html=True)
     
     with st.spinner("Cargando base de datos..."):
-        df = obtener_datos("collisions")
+        df = obtener_datos("collisions", anio=filtro_anio)
         if not df.empty:
             st.dataframe(df.head(50), use_container_width=True)
 

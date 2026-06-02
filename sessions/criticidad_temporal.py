@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from utils.database import obtener_datos
+from utils.database import obtener_datos_procesados_con_cache
 from components.temporal_geografico_charts import (
     render_areas_severidad,
     render_radar_factores,
@@ -8,7 +8,7 @@ from components.temporal_geografico_charts import (
     render_scatter_animado
 )
 
-def mostrar_criticidad():
+def mostrar_criticidad(anio="Todos"):
     st.markdown("""
     <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
         <h1 style="color: #D4AF37; margin: 0;">🕒 Criticidad Geográfica y Temporal</h1>
@@ -22,32 +22,39 @@ def mostrar_criticidad():
     </div>
     """, unsafe_allow_html=True)
 
-    with st.spinner("Cargando datos..."):
-        collisions = obtener_datos("collisions")
-        parties = obtener_datos("parties")
+    # 2. OPTIMIZACIÓN DE CACHÉ: Traemos los datos cruzados y los límites de fechas directo de memoria
+    with st.spinner("Cargando periodos temporales optimizados..."):
+        df, _, _, min_date, max_date = obtener_datos_procesados_con_cache()
 
-    if collisions.empty or parties.empty:
+    if df.empty:
         st.error("No se pudieron cargar los datos necesarios.")
         return
-
-    # Unir las tablas necesarias
-    df = collisions.merge(parties, on='case_id', how='left', suffixes=('', '_party'))
     
-    # Asegurar fecha
     df['collision_date'] = pd.to_datetime(df['collision_date'], errors='coerce')
-    min_date = df['collision_date'].min().date()
-    max_date = df['collision_date'].max().date()
-
-    # Sidebar: periodos ajustables
+    
     with st.sidebar:
         st.markdown("### 📅 Definir periodos")
-        pre_start = st.date_input("Pre‑pandemia inicio", value=pd.to_datetime('2018-01-01').date(),
+        
+        # 1. Definir los valores deseados por defecto
+        default_pre_start = pd.to_datetime('2018-01-01').date()
+        default_pre_end   = pd.to_datetime('2019-12-31').date()
+        default_pan_start = pd.to_datetime('2020-01-01').date()
+        default_pan_end   = pd.to_datetime('2021-12-31').date()
+
+        # 2. Controlar que no se salgan de los límites reales de la data (min_date y max_date)
+        pre_start_val = max(min_date, min(default_pre_start, max_date))
+        pre_end_val   = max(min_date, min(default_pre_end, max_date))
+        pan_start_val = max(min_date, min(default_pan_start, max_date))
+        pan_end_val   = max(min_date, min(default_pan_end, max_date))
+
+        # 3. Renderizar los inputs con los valores protegidos
+        pre_start = st.date_input("Pre‑pandemia inicio", value=pre_start_val,
                                   min_value=min_date, max_value=max_date)
-        pre_end   = st.date_input("Pre‑pandemia fin",     value=pd.to_datetime('2019-12-31').date(),
+        pre_end   = st.date_input("Pre‑pandemia fin",     value=pre_end_val,
                                   min_value=min_date, max_value=max_date)
-        pan_start = st.date_input("Pandemia inicio",       value=pd.to_datetime('2020-01-01').date(),
+        pan_start = st.date_input("Pandemia inicio",       value=pan_start_val,
                                   min_value=min_date, max_value=max_date)
-        pan_end   = st.date_input("Pandemia fin",          value=pd.to_datetime('2021-12-31').date(),
+        pan_end   = st.date_input("Pandemia fin",          value=pan_end_val,
                                   min_value=min_date, max_value=max_date)
 
     # DataFrames por periodo

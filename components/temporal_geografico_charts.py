@@ -1,10 +1,12 @@
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 
 GOLD = "#D4AF37"
 COFFEE = "#4B3621"
 DARK_BG = "#121212"
 TEXT_COLOR = "#FFFFFF"
+
 
 def render_areas_severidad(df, anio_inicio=2018, anio_fin=2021):
     """Áreas apiladas: evolución anual de accidentes por severidad."""
@@ -37,7 +39,7 @@ def render_areas_severidad(df, anio_inicio=2018, anio_fin=2021):
         font=dict(color=COFFEE),
         xaxis=dict(title='Año', dtick=1, gridcolor='#333', tickfont=dict(color=COFFEE)),
         yaxis=dict(title='Cantidad de Accidentes', gridcolor='#333', tickfont=dict(color=COFFEE)),
-        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
+        legend=dict(font=dict(color=DARK_BG), bgcolor=DARK_BG, bordercolor=GOLD)
     )
     return fig
 
@@ -92,23 +94,41 @@ def render_waterfall_anual(df, anio_inicio=2018, anio_fin=2021):
     anual = df.groupby('anio').size().reset_index(name='total')
     
     years = sorted(anual['anio'].unique())
+
     tot = anual.set_index('anio')['total']
-    
+
+   
+
     y = [tot.iloc[0]] + [tot.iloc[i] - tot.iloc[i-1] for i in range(1, len(years))]
+
     text = [f"{v:+,}" for v in y]
-    
+
+   
+
     fig = px.bar(x=[str(y) for y in years], y=y, text=text,
+
                  color=[0 if i==0 else (1 if y[i]>0 else -1) for i in range(len(y))],
+
                  color_continuous_scale=[[0, COFFEE], [0.5, GOLD], [1, '#8B4513']])
+
     fig.update_traces(textposition='outside')
+
     fig.update_layout(
+
         title=dict(text='Cambio Interanual de Accidentes', font=dict(color=GOLD)),
+
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+
         font=dict(color=COFFEE),
+
         xaxis=dict(title='Año', gridcolor='#333', tickfont=dict(color=COFFEE)),
+
         yaxis=dict(title='Cambio en Cantidad', gridcolor='#333', tickfont=dict(color=COFFEE)),
+
         showlegend=False, coloraxis_showscale=False
+
     )
+
     return fig
 
 def render_scatter_animado(df):
@@ -132,12 +152,12 @@ def render_scatter_animado(df):
         color_discrete_map={'Fatal': COFFEE, 'Grave': '#8B4513', 'Leve': '#CD853F', 'Daños': GOLD, 'Otro': '#666666'},
         size_max=10,
         zoom=5, center=dict(lat=36.7783, lon=-119.4179),
-        mapbox_style='open-street-map',
+        mapbox_style='carto-darkmatter',
         labels={'severidad': 'Severidad'}
     )
     fig.update_layout(
         title=dict(text='Evolución Geográfica de Accidentes Fatales', font=dict(color=GOLD)),
-        paper_bgcolor='rgba(0,0,0,0)', font=dict(color=COFFEE),
+        paper_bgcolor='rgba(0,0,0,0)', font=dict(color=TEXT_COLOR),
         legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
     )
     return fig
