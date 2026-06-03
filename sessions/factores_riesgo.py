@@ -8,7 +8,7 @@ from components.risk_factors_charts import (
     render_boxplot_edad_por_tipo_colision
 )
 
-def mostrar_factores_riesgo():
+def mostrar_factores_riesgo(df):
     st.markdown("""
     <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
         <h1 style="color: #D4AF37; margin: 0;">🚦 Factores de Riesgo en Colisiones</h1>
@@ -22,6 +22,10 @@ def mostrar_factores_riesgo():
     </div>
     """, unsafe_allow_html=True)
 
+    if df.empty:
+        st.warning("No hay datos disponibles para el periodo seleccionado.")
+        return
+    
     with st.spinner("Cargando y procesando datos optimizados..."):
         df_merged, df_victims_merged, victims, _, _ = obtener_datos_procesados_con_cache()
 
@@ -30,6 +34,14 @@ def mostrar_factores_riesgo():
         st.error("No se pudieron cargar los datos necesarios.")
         return
 
+    df_merged = df_merged_master[df_merged_master['case_id'].isin(df['case_id'])].copy()
+    df_victims_merged = df_victims_merged_master[df_victims_merged_master['case_id'].isin(df['case_id'])].copy()
+    victims = victims_master[victims_master['case_id'].isin(df['case_id'])].copy()
+
+    if df_merged.empty:
+        st.warning("No se encontraron registros para las condiciones temporales seleccionadas.")
+        return
+    
     total_acc = len(df_merged)
     total_vic = len(df_victims_merged)
     fatalidades = df_merged['killed_victims'].sum()

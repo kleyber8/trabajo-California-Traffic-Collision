@@ -8,7 +8,7 @@ from components.temporal_geografico_charts import (
     render_scatter_animado
 )
 
-def mostrar_criticidad(anio="Todos"):
+def mostrar_criticidad(df_filtrado):
     st.markdown("""
     <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
         <h1 style="color: #D4AF37; margin: 0;">🕒 Criticidad Geográfica y Temporal</h1>
@@ -21,52 +21,39 @@ def mostrar_criticidad(anio="Todos"):
         </p>
     </div>
     """, unsafe_allow_html=True)
+    
+    if df_filtrado.empty:
+        st.warning("No hay datos disponibles para el periodo seleccionado.")
+        return
 
     # 2. OPTIMIZACIÓN DE CACHÉ: Traemos los datos cruzados y los límites de fechas directo de memoria
     with st.spinner("Cargando periodos temporales optimizados..."):
-        df, _, _, min_date, max_date = obtener_datos_procesados_con_cache()
+        df_master, _, _, min_date, max_date = obtener_datos_procesados_con_cache()
 
-    if df.empty:
+    if df_master.empty:
         st.error("No se pudieron cargar los datos necesarios.")
         return
     
-    df['collision_date'] = pd.to_datetime(df['collision_date'], errors='coerce')
+    df_master['collision_date'] = pd.to_datetime(df_master['collision_date'], errors='coerce')
     
-    with st.sidebar:
-        st.markdown("### 📅 Definir periodos")
-        
-        # 1. Definir los valores deseados por defecto
-        default_pre_start = pd.to_datetime('2018-01-01').date()
-        default_pre_end   = pd.to_datetime('2019-12-31').date()
-        default_pan_start = pd.to_datetime('2020-01-01').date()
-        default_pan_end   = pd.to_datetime('2021-12-31').date()
+    # Segmentación fija para gráficos comparativos (ej. Radar) sin inputs en la UI
+    fecha_limite_pandemia_inicio = pd.to_datetime('2020-03-19')
+    fecha_limite_pandemia_fin    = pd.to_datetime('2021-01-24')
 
-        # 2. Controlar que no se salgan de los límites reales de la data (min_date y max_date)
-        pre_start_val = max(min_date, min(default_pre_start, max_date))
-        pre_end_val   = max(min_date, min(default_pre_end, max_date))
-        pan_start_val = max(min_date, min(default_pan_start, max_date))
-        pan_end_val   = max(min_date, min(default_pan_end, max_date))
-
-        # 3. Renderizar los inputs con los valores protegidos
-        pre_start = st.date_input("Pre‑pandemia inicio", value=pre_start_val,
-                                  min_value=min_date, max_value=max_date)
-        pre_end   = st.date_input("Pre‑pandemia fin",     value=pre_end_val,
-                                  min_value=min_date, max_value=max_date)
-        pan_start = st.date_input("Pandemia inicio",       value=pan_start_val,
-                                  min_value=min_date, max_value=max_date)
-        pan_end   = st.date_input("Pandemia fin",          value=pan_end_val,
-                                  min_value=min_date, max_value=max_date)
-
-    # DataFrames por periodo
-    df_pre = df[(df['collision_date'] >= pd.to_datetime(pre_start)) & (df['collision_date'] <= pd.to_datetime(pre_end))]
-    df_pan = df[(df['collision_date'] >= pd.to_datetime(pan_start)) & (df['collision_date'] <= pd.to_datetime(pan_end))]
-    df_all = pd.concat([df_pre, df_pan])
-
-    # Métricas rápidas
+    # DataFrames de control para comparativas internas
+    df_pre = df_master[df_master['collision_date'] < fecha_limite_pandemia_inicio]
+    df_pan = df_master[(df_master['collision_date'] >= fecha_limite_pandemia_inicio) & 
+                       (df_master['collision_date'] <= fecha_limite_pandemia_fin)]
+    
+# Métricas dinámicas superiores basadas en el entorno activo seleccionado en la app
+    total_entorno_activo = len(df_filtrado)
+    total_historico_base = len(df_master)
+    representacion_pct = (total_entorno_activo / total_historico_base * 100) if total_historico_base > 0 else 0
+    
     col1, col2, col3 = st.columns(3)
-    col1.metric("Pre‑pandemia", f"{len(df_pre):,}")
-    col2.metric("Pandemia", f"{len(df_pan):,}")
-    col3.metric("Variación", f"{len(df_pan) - len(df_pre):+,}")
+    col1.metric("Registros en Entorno Activo", f"{total_entorno_activo:,}")
+    col2.metric("Registros totales de la data", f"{total_historico_base:,}")
+    col3.metric("Proporción", f"{representacion_pct:.1f}%")
     st.markdown("---")
 
     # Pestañas
@@ -78,13 +65,13 @@ def mostrar_criticidad(anio="Todos"):
     ])
 
     with tab1:
-        st.plotly_chart(render_areas_severidad(df_all), use_container_width=True)
+        st.plotly_chart(render_areas_severidad(df_filtrado), use_container_width=True)
 
     with tab2:
         st.plotly_chart(render_radar_factores(df_pre, df_pan), use_container_width=True)
 
     with tab3:
-        st.plotly_chart(render_waterfall_anual(df_all), use_container_width=True)
+        st.plotly_chart(render_waterfall_anual(df_filtrado), use_container_width=True)
 
     with tab4:
-        st.plotly_chart(render_scatter_animado(df_all), use_container_width=True)
+        st.plotly_chart(render_scatter_animado(df_filtrado), use_container_width=True)
