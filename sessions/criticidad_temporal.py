@@ -1,6 +1,14 @@
 import streamlit as st
-import pandas as pd
-from utils.database import obtener_datos_procesados_con_cache
+from utils.database import (
+    get_areas_severidad,
+    get_raw_areas_sample,
+    get_radar_factores_pre_pandemia,
+    get_radar_factores_pandemia,
+    get_waterfall_anual,
+    get_raw_waterfall_sample,
+    get_scatter_animado,
+    get_raw_scatter_sample
+)
 from components.temporal_geografico_charts import (
     render_areas_severidad,
     render_radar_factores,
@@ -8,7 +16,7 @@ from components.temporal_geografico_charts import (
     render_scatter_animado
 )
 
-def mostrar_criticidad(df_filtrado):
+def mostrar_criticidad(fecha_ini, fecha_fin):
     st.markdown("""
     <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
         <h1 style="color: #D4AF37; margin: 0;">🕒 Criticidad Geográfica y Temporal</h1>
@@ -16,62 +24,50 @@ def mostrar_criticidad(df_filtrado):
             <span style="color: #D4AF37; font-weight: bold;">Pre‑pandemia vs Pandemia</span> · 
             Evolución de accidentes y factores de riesgo (2018‑2021)
         </p>
-        <p style="color: #CCCCCC; margin-bottom: 0;">
-            Fuente: <span style="color: #D4AF37;">California Highway Patrol</span> – SWITRS
-        </p>
+        <p style="color: #CCCCCC; margin-bottom: 0;">Fuente: California Highway Patrol – SWITRS</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    if df_filtrado.empty:
-        st.warning("No hay datos disponibles para el periodo seleccionado.")
-        return
 
-    # 2. OPTIMIZACIÓN DE CACHÉ: Traemos los datos cruzados y los límites de fechas directo de memoria
-    with st.spinner("Cargando periodos temporales optimizados..."):
-        df_master, _, _, min_date, max_date = obtener_datos_procesados_con_cache()
+    with st.spinner("Cargando datos temporales..."):
+        df_areas = get_areas_severidad(fecha_ini, fecha_fin)
+        df_pre = get_radar_factores_pre_pandemia()
+        df_pan = get_radar_factores_pandemia()
+        df_waterfall = get_waterfall_anual(fecha_ini, fecha_fin)
+        df_scatter = get_scatter_animado(fecha_ini, fecha_fin)
 
-    if df_master.empty:
-        st.error("No se pudieron cargar los datos necesarios.")
-        return
-    
-    df_master['collision_date'] = pd.to_datetime(df_master['collision_date'], errors='coerce')
-    
-    # Segmentación fija para gráficos comparativos (ej. Radar) sin inputs en la UI
-    fecha_limite_pandemia_inicio = pd.to_datetime('2020-03-19')
-    fecha_limite_pandemia_fin    = pd.to_datetime('2021-01-24')
-
-    # DataFrames de control para comparativas internas
-    df_pre = df_master[df_master['collision_date'] < fecha_limite_pandemia_inicio]
-    df_pan = df_master[(df_master['collision_date'] >= fecha_limite_pandemia_inicio) & 
-                       (df_master['collision_date'] <= fecha_limite_pandemia_fin)]
-    
-# Métricas dinámicas superiores basadas en el entorno activo seleccionado en la app
-    total_entorno_activo = len(df_filtrado)
-    total_historico_base = len(df_master)
-    representacion_pct = (total_entorno_activo / total_historico_base * 100) if total_historico_base > 0 else 0
-    
+    total_entorno = df_areas['conteo'].sum() if not df_areas.empty else 0
     col1, col2, col3 = st.columns(3)
-    col1.metric("Registros en Entorno Activo", f"{total_entorno_activo:,}")
-    col2.metric("Registros totales de la data", f"{total_historico_base:,}")
-    col3.metric("Proporción", f"{representacion_pct:.1f}%")
-    st.markdown("---")
+    col1.metric("Registros en entorno activo", f"{total_entorno:,}")
+    col2.metric("Años analizados", "2018-2021")
+    col3.metric("Total fatalidades", f"{df_scatter['killed_victims'].sum():,}" if not df_scatter.empty else "0")
 
-    # Pestañas
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📈 Áreas de Severidad",
-        "🕸️ Radar de Factores",
-        "📉 Cascada Interanual",
-        "🗺️ Mapa Animado"
-    ])
+    st.markdown("---")
+    tab1, tab2, tab3, tab4 = st.tabs(["📈 Áreas de Severidad", "🕸️ Radar de Factores", "📉 Cascada Interanual", "🗺️ Mapa Animado"])
 
     with tab1:
-        st.plotly_chart(render_areas_severidad(df_filtrado), use_container_width=True)
+        st.plotly_chart(render_areas_severidad(df_areas), use_container_width=True)
+        with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
+            st.caption("Mostrando solamente 20 filas de colisiones (fecha y severidad).")
+            df_raw = get_raw_areas_sample(fecha_ini, fecha_fin)
+            st.dataframe(df_raw)
 
     with tab2:
         st.plotly_chart(render_radar_factores(df_pre, df_pan), use_container_width=True)
+        st.caption("El gráfico radar muestra porcentajes agregados; no hay una tabla de datos subyacente con límite de 20 filas.")
 
     with tab3:
-        st.plotly_chart(render_waterfall_anual(df_filtrado), use_container_width=True)
+        st.plotly_chart(render_waterfall_anual(df_waterfall), use_container_width=True)
+        with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
+            st.caption("Mostrando solamente 20 filas de colisiones (fechas).")
+            df_raw = get_raw_waterfall_sample(fecha_ini, fecha_fin)
+            st.dataframe(df_raw)
 
     with tab4:
-        st.plotly_chart(render_scatter_animado(df_filtrado), use_container_width=True)
+        if not df_scatter.empty:
+            st.plotly_chart(render_scatter_animado(df_scatter), use_container_width=True)
+        else:
+            st.warning("No hay datos para el mapa animado en este periodo.")
+        with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
+            st.caption("Mostrando solamente 20 filas de accidentes fatales (ubicación, año, severidad).")
+            df_raw = get_raw_scatter_sample(fecha_ini, fecha_fin)
+            st.dataframe(df_raw)

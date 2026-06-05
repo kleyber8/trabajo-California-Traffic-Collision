@@ -1,35 +1,16 @@
 import streamlit as st
-import duckdb
-from utils.database import obtener_datos
-
+from utils.database import ejecutar_consulta_limitada
 
 def mostrar_querys_filtrado():
-
-    # 1. Cargamos las tablas necesarias desde Drive
-    with st.spinner("Cargando tablas desde Drive para la consulta..."):
-        collisions = obtener_datos("collision_lite")
-        parties = obtener_datos("parties_lite")
-        case_ids = obtener_datos("case_ids_lite")
-        victims = obtener_datos("victims_lite") 
-        involved_victims = obtener_datos("involved_victims_part_0")  
-
     st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Panel de Control</h1>", unsafe_allow_html=True)
     st.divider()
 
-    # Creación de 6 pestañas: La de puntos a tener en cuenta + las 5 de consultas
-    tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8= st.tabs([
+    tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "Puntos a tener en cuenta",
-        "1. Case IDs", 
-        "2. Collisions", 
-        "3. Parties", 
-        "4. Victims", 
-        "5. Involved Victims",
-        "6. Denormalizacion_1",
-        "7. Denormalizacion_2",
-        "8. Denormalizacion_3"
+        "1. Case IDs", "2. Collisions", "3. Parties", "4. Victims",
+        "5. Involved Victims", "6. Denormalizacion_1", "7. Denormalizacion_2", "8. Denormalizacion_3"
     ])
 
-    # --- PESTAÑA 0: PUNTOS A TENER EN CUENTA ---
     with tab0:
         st.header("Puntos a tener en cuenta")
         st.subheader("Definición del trabajo de filtrado")
@@ -47,11 +28,9 @@ def mostrar_querys_filtrado():
     analisis interno del trabajo. 
     """)
 
-    # --- PESTAÑA 1: CASE IDS ---
     with tab1:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Primera selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
-
         st.header("filtado y selección de las variables de la tabla case_ids")
         st.subheader("Los dos años que tenian los datos mas recientes sobre las colisiones de California")
         st.markdown("""**Contexto sobre la base de datos:**
@@ -63,23 +42,19 @@ def mostrar_querys_filtrado():
     su respectivo año de recoleciones.
     """)
         st.markdown("---")
+        st.subheader("📝 Ejecutar Consulta")
+        query_default = "SELECT * FROM case_ids WHERE db_year IN ('2020', '2021')"
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=100, key="sql_1")
+        if st.button("Primer ejemplo de filtrado", key="btn_1"):
+            try:
+                resultado = ejecutar_consulta_limitada(sql_input, limite=20)
+                st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
+                st.dataframe(resultado, use_container_width=True)
+                csv = resultado.to_csv(index=False)
+                st.download_button("Descargar CSV", csv, "resultado_1.csv", "text/csv", key="dl_1")
+            except Exception as e:
+                st.error(f"Error en la consulta SQL: {e}")
 
-        if not case_ids.empty:
-            st.subheader("📝 Ejecutar Consulta")
-            query_default = "SELECT * FROM case_ids WHERE db_year IN ('2020', '2021');"
-            sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=150, key="sql_1")
-
-            if st.button("Primer ejemplo de filtrado", key="btn_1"):
-                try:
-                    resultado = duckdb.query(sql_input).to_df()
-                    st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
-                    st.dataframe(resultado, use_container_width=True)
-                    csv = resultado.to_csv(index=False)
-                    st.download_button("Descargar CSV", csv, "resultado_1.csv", "text/csv", key="dl_1")
-                except Exception as e:
-                    st.error(f"Error en la consulta SQL: {e}")
-
-    # --- PESTAÑA 2: COLLISIONS ---
     with tab2:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Segunda selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -94,39 +69,25 @@ def mostrar_querys_filtrado():
     de la tabla collisions.
     """)
         st.markdown("---")
+        st.subheader("📝 Ejecutar Consulta")
+        query_default = """
+SELECT case_id, collision_severity, primary_collision_factor, killed_victims,
+injured_victims, pcf_violation_category, weather_1, lighting, type_of_collision,
+longitude, latitude, party_count, collision_date, collision_time, road_surface, location_type
+FROM collisions
+WHERE collision_date BETWEEN '2018-01-01' AND '2021-12-31'
+"""
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_2")
+        if st.button("Segundo ejemplo de filtrado", key="btn_2"):
+            try:
+                resultado = ejecutar_consulta_limitada(sql_input, limite=20)
+                st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
+                st.dataframe(resultado, use_container_width=True)
+                csv = resultado.to_csv(index=False)
+                st.download_button("Descargar CSV", csv, "resultado_2.csv", "text/csv", key="dl_2")
+            except Exception as e:
+                st.error(f"Error en la consulta SQL: {e}")
 
-        if not collisions.empty:
-            st.subheader("📝 Ejecutar Consulta")
-            query_default = "SELECT case_id, " \
-            "collision_severity, " \
-            "primary_collision_factor, " \
-            "killed_victims, " \
-            "injured_victims, " \
-            "pcf_violation_category, " \
-            "weather_1, lighting, " \
-            "type_of_collision, " \
-            "longitude, " \
-            "latitude, " \
-            "party_count, " \
-            "collision_date, " \
-            "collision_time, " \
-            "road_surface, " \
-            "location_type " \
-            "FROM collisions " \
-            "WHERE collision_date BETWEEN '2018-01-01' AND '2021-12-31';"
-            sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=150, key="sql_2")
-
-            if st.button("Segundo ejemplo de filtrado", key="btn_2"):
-                try:
-                    resultado = duckdb.query(sql_input).to_df()
-                    st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
-                    st.dataframe(resultado, use_container_width=True)
-                    csv = resultado.to_csv(index=False)
-                    st.download_button("Descargar CSV", csv, "resultado_2.csv", "text/csv", key="dl_2")
-                except Exception as e:
-                    st.error(f"Error en la consulta SQL: {e}")
-
-    # --- PESTAÑA 3: PARTIES ---
     with tab3:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Tercera selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -138,36 +99,24 @@ def mostrar_querys_filtrado():
     cellphone_in_use, party_safety_equipment_1, party_sobriety, etc. 
     """)
         st.markdown("---")
+        st.subheader("📝 Ejecutar Consulta")
+        query_default = """
+SELECT id, case_id, party_number, party_sobriety, party_type,
+party_drug_physical, movement_preceding_collision, at_fault, vehicle_make, vehicle_year,
+cellphone_in_use, statewide_vehicle_type, party_safety_equipment_1, party_safety_equipment_2
+FROM parties
+"""
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_3")
+        if st.button("Tercer ejemplo de filtrado", key="btn_3"):
+            try:
+                resultado = ejecutar_consulta_limitada(sql_input, limite=20)
+                st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
+                st.dataframe(resultado, use_container_width=True)
+                csv = resultado.to_csv(index=False)
+                st.download_button("Descargar CSV", csv, "resultado_3.csv", "text/csv", key="dl_3")
+            except Exception as e:
+                st.error(f"Error en la consulta SQL: {e}")
 
-        if not parties.empty:
-            st.subheader("📝 Ejecutar Consulta")
-            query_default = "SELECT id, " \
-            "case_id, " \
-            "party_number, " \
-            "party_sobriety, " \
-            "party_type, " \
-            "party_drug_physical, " \
-            "movement_preceding_collision, at_fault, " \
-            "vehicle_make, " \
-            "vehicle_year, " \
-            "cellphone_in_use, " \
-            "statewide_vehicle_type, " \
-            "party_safety_equipment_1, " \
-            "party_safety_equipment_2 " \
-            "FROM parties;"
-            sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=150, key="sql_3")
-
-            if st.button("Tercer ejemplo de filtrado", key="btn_3"):
-                try:
-                    resultado = duckdb.query(sql_input).to_df()
-                    st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
-                    st.dataframe(resultado, use_container_width=True)
-                    csv = resultado.to_csv(index=False)
-                    st.download_button("Descargar CSV", csv, "resultado_3.csv", "text/csv", key="dl_3")
-                except Exception as e:
-                    st.error(f"Error en la consulta SQL: {e}")
-
-    # --- PESTAÑA 4: VICTIMS ---
     with tab4:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Cuarta selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -180,34 +129,24 @@ def mostrar_querys_filtrado():
     victim_role, victim_sex, victim_age, victim_degree_of_injury, etc. 
     """)
         st.markdown("---")
+        st.subheader("📝 Ejecutar Consulta")
+        query_default = """
+SELECT id, case_id, party_number, victim_role, victim_sex, victim_age,
+victim_degree_of_injury, victim_seating_position, victim_safety_equipment_1,
+victim_safety_equipment_2, victim_ejected
+FROM victims
+"""
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_4")
+        if st.button("Cuarto ejemplo de filtrado", key="btn_4"):
+            try:
+                resultado = ejecutar_consulta_limitada(sql_input, limite=20)
+                st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
+                st.dataframe(resultado, use_container_width=True)
+                csv = resultado.to_csv(index=False)
+                st.download_button("Descargar CSV", csv, "resultado_4.csv", "text/csv", key="dl_4")
+            except Exception as e:
+                st.error(f"Error en la consulta SQL: {e}")
 
-        if not victims.empty:
-            st.subheader("📝 Ejecutar Consulta")
-            query_default = "SELECT id, " \
-            "case_id, " \
-            "party_number, " \
-            "victim_role, " \
-            "victim_sex, " \
-            "victim_age, " \
-            "victim_degree_of_injury, " \
-            "victim_seating_position, " \
-            "victim_safety_equipment_1, " \
-            "victim_safety_equipment_2, " \
-            "victim_ejected " \
-            "FROM victims;"
-            sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=150, key="sql_4")
-
-            if st.button("Cuarto ejemplo de filtrado", key="btn_4"):
-                try:
-                    resultado = duckdb.query(sql_input).to_df()
-                    st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
-                    st.dataframe(resultado, use_container_width=True)
-                    csv = resultado.to_csv(index=False)
-                    st.download_button("Descargar CSV", csv, "resultado_4.csv", "text/csv", key="dl_4")
-                except Exception as e:
-                    st.error(f"Error en la consulta SQL: {e}")
-
-    # --- PESTAÑA 5: INVOLVED VICTIMS ---
     with tab5:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Quinta selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -221,49 +160,42 @@ def mostrar_querys_filtrado():
     de las victimas de de esta base de datos. 
     """)
         st.markdown("---")
+        st.subheader("📝 Ejecutar Consulta")
+        query_default = """
+WITH biometria_maestra AS (
+    SELECT v.id,
+        (SELECT v2.victim_sex FROM victims v2 WHERE v2.id = v.id AND v2.victim_sex IS NOT NULL AND v2.victim_sex NOT IN ('', 'UNKNOWN', 'NOT_SPECIFIED') GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1) AS sexo_real,
+        (SELECT (CAST(SUBSTR(c2.collision_date, 1, 4) AS INT) - v3.victim_age) FROM victims v3 JOIN collisions c2 ON v3.case_id = c2.case_id WHERE v3.id = v.id AND v3.victim_age > 0 AND v3.victim_age < 110 GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1) AS anio_nac_real
+    FROM victims v WHERE v.id IS NOT NULL GROUP BY v.id
+)
+SELECT v.id, v.case_id, bm.sexo_real,
+    CASE 
+        WHEN bm.anio_nac_real IS NULL THEN NULL
+        WHEN (CAST(SUBSTR(c.collision_date, 1, 4) AS INT) - bm.anio_nac_real) NOT BETWEEN 0 AND 110 THEN NULL
+        ELSE (CAST(SUBSTR(c.collision_date, 1, 4) AS INT) - bm.anio_nac_real)
+    END AS victim_age
+FROM victims v JOIN collisions c ON v.case_id = c.case_id LEFT JOIN biometria_maestra bm ON v.id = bm.id
+"""
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=280, key="sql_5")
+        if st.button("Quinto ejemplo de filtrado", key="btn_5"):
+            try:
+                resultado = ejecutar_consulta_limitada(sql_input, limite=20)
+                st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
+                st.dataframe(resultado, use_container_width=True)
+                csv = resultado.to_csv(index=False)
+                st.download_button("Descargar CSV", csv, "resultado_5.csv", "text/csv", key="dl_5")
+            except Exception as e:
+                st.error(f"Error en la consulta SQL: {e}")
 
-        if not victims.empty:
-            st.subheader("📝 Ejecutar Consulta")
-            query_default = """
-    WITH biometria_maestra AS (
-        SELECT v.id,
-            (SELECT v2.victim_sex FROM victims v2 WHERE v2.id = v.id AND v2.victim_sex IS NOT NULL AND v2.victim_sex NOT IN ('', 'UNKNOWN', 'NOT_SPECIFIED') GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1) AS sexo_real,
-            (SELECT (CAST(SUBSTR(c2.collision_date, 1, 4) AS INT) - v3.victim_age) FROM victims v3 JOIN collisions c2 ON v3.case_id = c2.case_id WHERE v3.id = v.id AND v3.victim_age > 0 AND v3.victim_age < 110 GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1) AS anio_nac_real
-        FROM victims v WHERE v.id IS NOT NULL GROUP BY v.id
-    )
-    SELECT v.id, v.case_id, bm.sexo_real,
-        CASE 
-            WHEN bm.anio_nac_real IS NULL THEN NULL
-            WHEN (CAST(SUBSTR(c.collision_date, 1, 4) AS INT) - bm.anio_nac_real) NOT BETWEEN 0 AND 110 THEN NULL
-            ELSE (CAST(SUBSTR(c.collision_date, 1, 4) AS INT) - bm.anio_nac_real)
-        END AS victim_age
-    FROM victims v JOIN collisions c ON v.case_id = c.case_id LEFT JOIN biometria_maestra bm ON v.id = bm.id;
-    """
-            sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=200, key="sql_5")
-
-            if st.button("Quinto ejemplo de filtrado", key="btn_5"):
-                try:
-                    resultado = duckdb.query(sql_input).to_df()
-                    st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
-                    st.dataframe(resultado, use_container_width=True)
-                    csv = resultado.to_csv(index=False)
-                    st.download_button("Descargar CSV", csv, "resultado_5.csv", "text/csv", key="dl_5")
-                except Exception as e:
-                    st.error(f"Error en la consulta SQL: {e}")
-
-
-
-# --- PESTAÑA 6: DENORMALIZACION_1 ---
     with tab6:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de denormalización: ¿Cúal es el perfil demografico de las victimas y la severidad de sus lesiones sufridas?</h1>", unsafe_allow_html=True)
         st.divider()
         st.markdown("""**Se seleccionaron los campos de victim_age, sexo_real, victim_degree_of_injury y victim_role, entre otros; para responder a criterios de análisis de riesgo y vulnerabilidad. Ademas, el codigo implementa una clasificación basada en rangos de edad mediante una estructura condicional**""")
         st.markdown("---")
-
-        if not victims.empty:
-            st.subheader("📝 Ejecutar Consulta")
-            query_default = """ SELECT  
-    iv.id_victim as id, 
+        st.subheader("📝 Ejecutar Consulta")
+        query_default = """
+SELECT  
+    iv.id, 
     iv.case_id,
     iv.victim_age,
     CASE
@@ -273,37 +205,33 @@ def mostrar_querys_filtrado():
         WHEN iv.victim_age BETWEEN 66 AND 120 THEN 'Older_Adult' 
         ELSE 'Unlicensed_Driver'
     END AS Age_classification,
-    iv.sexo_real,
+    iv.victim_sex,
     v.victim_degree_of_injury,
     v.victim_role,
     c.collision_date
 FROM involved_victims iv
-JOIN victims v ON v.id_victim = iv.id_victim
-JOIN collisions c ON c.case_id = iv.case_id;"""
+JOIN victims v ON v.id = iv.id
+JOIN collisions c ON c.case_id = iv.case_id
+"""
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=220, key="sql_6")
+        if st.button("Ejecutar denormalización 1", key="btn_6"):
+            try:
+                resultado = ejecutar_consulta_limitada(sql_input, limite=20)
+                st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
+                st.dataframe(resultado, use_container_width=True)
+                csv = resultado.to_csv(index=False)
+                st.download_button("Descargar CSV", csv, "resultado_6.csv", "text/csv", key="dl_6")
+            except Exception as e:
+                st.error(f"Error en la consulta SQL: {e}")
 
-            sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=150, key="sql_6")
-
-            if st.button("Cuarto ejemplo de filtrado", key="btn_6"):
-                try:
-                    resultado = duckdb.query(sql_input).to_df()
-                    st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
-                    st.dataframe(resultado, use_container_width=True)
-                    csv = resultado.to_csv(index=False)
-                    st.download_button("Descargar CSV", csv, "resultado_4.csv", "text/csv", key="dl_4")
-                except Exception as e:
-                    st.error(f"Error en la consulta SQL: {e}")
-
-
-# --- PESTAÑA 7: DENORMALIZACION_2 ---
     with tab7:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de denormalización: ¿De qué manera influyen los factores de riesgo en la severidad del accidente y en la dinamica del vehículo?</h1>", unsafe_allow_html=True)
         st.divider()
         st.markdown("""**Se seleccionaron los campos con el fin de saber el por qué ocurrió y qué factores aumentaron el riesgo de un desenlace fatal.**""")
         st.markdown("---")
-
-        if not victims.empty:
-            st.subheader("📝 Ejecutar Consulta")
-            query_default = """SELECT 
+        st.subheader("📝 Ejecutar Consulta")
+        query_default = """
+SELECT 
     c.case_id,
     c.collision_date,
     CASE 
@@ -327,42 +255,36 @@ JOIN collisions c ON c.case_id = iv.case_id;"""
     p.party_safety_equipment_2,
     c.lighting
 FROM collisions c
-JOIN parties p ON p.case_id = c.case_id;
+JOIN parties p ON p.case_id = c.case_id
 """
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=260, key="sql_7")
+        if st.button("Ejecutar denormalización 2", key="btn_7"):
+            try:
+                resultado = ejecutar_consulta_limitada(sql_input, limite=20)
+                st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
+                st.dataframe(resultado, use_container_width=True)
+                csv = resultado.to_csv(index=False)
+                st.download_button("Descargar CSV", csv, "resultado_7.csv", "text/csv", key="dl_7")
+            except Exception as e:
+                st.error(f"Error en la consulta SQL: {e}")
 
-            sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=150, key="sql_7")
-
-            if st.button("Cuarto ejemplo de filtrado", key="btn_7"):
-                try:
-                    resultado = duckdb.query(sql_input).to_df()
-                    st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
-                    st.dataframe(resultado, use_container_width=True)
-                    csv = resultado.to_csv(index=False)
-                    st.download_button("Descargar CSV", csv, "resultado_4.csv", "text/csv", key="dl_4")
-                except Exception as e:
-                    st.error(f"Error en la consulta SQL: {e}")
-
-
-
-# --- PESTAÑA 8: DENORMALIZACION_3 ---
     with tab8:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de denormalización: ¿Cómo influye el entorno en la severidad del accidente?</h1>", unsafe_allow_html=True)
         st.divider()
         st.markdown("""**Al unir campos de la tabla collision con datos de la tabla victims, el codigo permite visualizar que es mas probable de sufrir un accidente segun el suelo, valores climaticos, momento del dia, entre otros...**""")
         st.markdown("---")
-
-        if not victims.empty:
-            st.subheader("📝 Ejecutar Consulta")
-            query_default = """SELECT
+        st.subheader("📝 Ejecutar Consulta")
+        query_default = """
+SELECT
 c.case_id,
 c.collision_date,
 c.collision_time,
 CASE
-WHEN c.collision_time BETWEEN '00:00:00' AND '05:59:59' THEN 'Madrugada'
-WHEN c.collision_time BETWEEN '06:00:00' AND '11:59:59' THEN 'Mañana'
-WHEN c.collision_time BETWEEN '12:00:00' AND '17:59:59' THEN 'Tarde'
-WHEN c.collision_time BETWEEN '18:00:00' AND '23:59:59' THEN 'Noche'
-ELSE 'Desconocido'
+    WHEN c.collision_time BETWEEN '00:00:00' AND '05:59:59' THEN 'Madrugada'
+    WHEN c.collision_time BETWEEN '06:00:00' AND '11:59:59' THEN 'Mañana'
+    WHEN c.collision_time BETWEEN '12:00:00' AND '17:59:59' THEN 'Tarde'
+    WHEN c.collision_time BETWEEN '18:00:00' AND '23:59:59' THEN 'Noche'
+    ELSE 'Desconocido'
 END AS momento_dia,
 c.weather_1,
 c.road_surface,
@@ -372,44 +294,15 @@ c.latitude,
 c.collision_severity,
 v.victim_degree_of_injury
 FROM collisions c
-JOIN victims v ON v.case_id = c.case_id;
+JOIN victims v ON v.case_id = c.case_id
 """
-
-            sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=150, key="sql_8")
-
-            if st.button("Cuarto ejemplo de filtrado", key="btn_8"):
-                try:
-                    resultado = duckdb.query(sql_input).to_df()
-                    st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
-                    st.dataframe(resultado, use_container_width=True)
-                    csv = resultado.to_csv(index=False)
-                    st.download_button("Descargar CSV", csv, "resultado_4.csv", "text/csv", key="dl_4")
-                except Exception as e:
-                    st.error(f"Error en la consulta SQL: {e}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=250, key="sql_8")
+        if st.button("Ejecutar denormalización 3", key="btn_8"):
+            try:
+                resultado = ejecutar_consulta_limitada(sql_input, limite=20)
+                st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
+                st.dataframe(resultado, use_container_width=True)
+                csv = resultado.to_csv(index=False)
+                st.download_button("Descargar CSV", csv, "resultado_8.csv", "text/csv", key="dl_8")
+            except Exception as e:
+                st.error(f"Error en la consulta SQL: {e}")
