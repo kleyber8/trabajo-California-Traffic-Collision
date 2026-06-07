@@ -3,16 +3,15 @@ import pandas as pd
 from utils.database import (
     get_areas_severidad,
     get_raw_areas_sample,
-    get_radar_factores_pre_pandemia,
-    get_radar_factores_pandemia,
-    get_waterfall_anual,
-    get_raw_waterfall_sample,
+    get_weather_lighting_data,
+    get_road_lighting_data,
     get_tendencia_fatalidades
 )
 from components.temporal_geografico_charts import (
     render_areas_severidad,
-    render_radar_factores,
-    render_waterfall_anual,
+    render_weather_lighting_grouped_bar,
+    render_road_lighting_grouped_bar,
+    render_road_lighting_bubble,
     render_tendencia_fatalidades
 )
 
@@ -30,9 +29,8 @@ def mostrar_criticidad(fecha_ini, fecha_fin):
 
     with st.spinner("Cargando datos temporales..."):
         df_areas = get_areas_severidad(fecha_ini, fecha_fin)
-        df_pre = get_radar_factores_pre_pandemia()
-        df_pan = get_radar_factores_pandemia()
-        df_waterfall = get_waterfall_anual(fecha_ini, fecha_fin)
+        df_weather_lighting = get_weather_lighting_data(fecha_ini, fecha_fin)
+        df_road_lighting = get_road_lighting_data(fecha_ini, fecha_fin)
         df_tendencia = get_tendencia_fatalidades(fecha_ini, fecha_fin)
 
     total_entorno = df_areas['conteo'].sum() if not df_areas.empty else 0
@@ -42,8 +40,15 @@ def mostrar_criticidad(fecha_ini, fecha_fin):
     col3.metric("Total fatalidades", f"{df_tendencia['fatalidades'].sum():,}" if not df_tendencia.empty else "0")
 
     st.markdown("---")
-    tab1, tab2, tab3, tab4 = st.tabs(["📈 Áreas de Severidad", "🕸️ Radar de Factores", "📉 Cascada Interanual", "📈 Tendencia de Fatalidades"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📊 Áreas de Severidad",
+        "🌤️ Clima e Iluminación",
+        "🛣️ Superficie e Iluminación",
+        "🫧 Burbujas: Superficie vs Iluminación",
+        "📈 Tendencia de Fatalidades"
+    ])
 
+    # ------------------------- TAB 1: Áreas de severidad -------------------------
     with tab1:
         st.plotly_chart(render_areas_severidad(df_areas), use_container_width=True)
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
@@ -51,23 +56,120 @@ def mostrar_criticidad(fecha_ini, fecha_fin):
             df_raw = get_raw_areas_sample(fecha_ini, fecha_fin)
             st.dataframe(df_raw)
 
+    # ------------------------- TAB 2: Clima e Iluminación (barras agrupadas) -------------------------
     with tab2:
-        st.plotly_chart(render_radar_factores(df_pre, df_pan), use_container_width=True)
-        st.caption("El gráfico radar muestra porcentajes agregados; no hay una tabla de datos subyacente con límite de 20 filas.")
-
-    with tab3:
-        st.plotly_chart(render_waterfall_anual(df_waterfall), use_container_width=True)
+        st.subheader("🌤️ Análisis: Condiciones Climáticas e Iluminación")
+        if not df_weather_lighting.empty:
+            weather_opts = sorted(df_weather_lighting['weather_1'].unique())
+            lighting_opts = sorted(df_weather_lighting['lighting'].unique())
+            col_f1, col_f2 = st.columns(2)
+            with col_f1:
+                selected_weather = st.multiselect(
+                    "Selecciona condiciones climáticas:",
+                    weather_opts,
+                    default=weather_opts,
+                    key="weather_filter"
+                )
+            with col_f2:
+                selected_lighting = st.multiselect(
+                    "Selecciona condiciones de iluminación:",
+                    lighting_opts,
+                    default=lighting_opts,
+                    key="lighting_filter"
+                )
+            df_filt = df_weather_lighting.copy()
+            if selected_weather:
+                df_filt = df_filt[df_filt['weather_1'].isin(selected_weather)]
+            if selected_lighting:
+                df_filt = df_filt[df_filt['lighting'].isin(selected_lighting)]
+            if not df_filt.empty:
+                fig = render_weather_lighting_grouped_bar(df_filt)
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("No hay datos con los filtros seleccionados.")
+        else:
+            st.warning("No hay datos de clima e iluminación para mostrar.")
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
-            st.caption("Mostrando solamente 20 filas de colisiones (fechas).")
-            df_raw = get_raw_waterfall_sample(fecha_ini, fecha_fin)
-            st.dataframe(df_raw)
+            st.dataframe(df_weather_lighting.head(20))
 
+    # ------------------------- TAB 3: Superficie de la vía e Iluminación (barras agrupadas) -------------------------
+    with tab3:
+        st.subheader("🛣️ Análisis: Tipo de Superficie de la Vía e Iluminación (Barras Agrupadas)")
+        if not df_road_lighting.empty:
+            road_opts = sorted(df_road_lighting['road_surface'].unique())
+            lighting_opts2 = sorted(df_road_lighting['lighting'].unique())
+            col_g1, col_g2 = st.columns(2)
+            with col_g1:
+                selected_road = st.multiselect(
+                    "Selecciona tipo de superficie:",
+                    road_opts,
+                    default=road_opts,
+                    key="road_filter"
+                )
+            with col_g2:
+                selected_lighting2 = st.multiselect(
+                    "Selecciona condiciones de iluminación:",
+                    lighting_opts2,
+                    default=lighting_opts2,
+                    key="lighting_filter2"
+                )
+            df_filt = df_road_lighting.copy()
+            if selected_road:
+                df_filt = df_filt[df_filt['road_surface'].isin(selected_road)]
+            if selected_lighting2:
+                df_filt = df_filt[df_filt['lighting'].isin(selected_lighting2)]
+            if not df_filt.empty:
+                fig = render_road_lighting_grouped_bar(df_filt)
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("No hay datos con los filtros seleccionados.")
+        else:
+            st.warning("No hay datos de superficie e iluminación para mostrar.")
+        with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
+            st.dataframe(df_road_lighting.head(20))
+
+    # ------------------------- TAB 4: Gráfico de burbujas mejorado -------------------------
     with tab4:
+        st.subheader("🫧 Relación entre Superficie de la Vía e Iluminación (Tamaño = Accidentes)")
+        if not df_road_lighting.empty:
+            road_opts_bubble = sorted(df_road_lighting['road_surface'].unique())
+            lighting_opts_bubble = sorted(df_road_lighting['lighting'].unique())
+            col_h1, col_h2 = st.columns(2)
+            with col_h1:
+                selected_road_bubble = st.multiselect(
+                    "Filtrar por tipo de superficie:",
+                    road_opts_bubble,
+                    default=road_opts_bubble,
+                    key="road_filter_bubble"
+                )
+            with col_h2:
+                selected_lighting_bubble = st.multiselect(
+                    "Filtrar por iluminación:",
+                    lighting_opts_bubble,
+                    default=lighting_opts_bubble,
+                    key="lighting_filter_bubble"
+                )
+            df_filt_bubble = df_road_lighting.copy()
+            if selected_road_bubble:
+                df_filt_bubble = df_filt_bubble[df_filt_bubble['road_surface'].isin(selected_road_bubble)]
+            if selected_lighting_bubble:
+                df_filt_bubble = df_filt_bubble[df_filt_bubble['lighting'].isin(selected_lighting_bubble)]
+            if not df_filt_bubble.empty:
+                fig_bubble = render_road_lighting_bubble(df_filt_bubble)
+                st.plotly_chart(fig_bubble, use_container_width=True)
+            else:
+                st.warning("No hay datos con los filtros seleccionados.")
+        else:
+            st.warning("No hay datos de superficie e iluminación para mostrar.")
+        with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
+            st.dataframe(df_road_lighting.head(20))
+
+    # ------------------------- TAB 5: Tendencia de fatalidades -------------------------
+    with tab5:
         st.subheader("📈 Evolución de Fatalidades en el Tiempo")
         if not df_tendencia.empty:
             granularidad = st.radio("Agrupar por:", ["Mes", "Año"], horizontal=True, key="gran_tend")
             if granularidad == "Año":
-                # Extraer año de la columna 'mes' (tipo datetime)
                 df_tendencia['año'] = pd.to_datetime(df_tendencia['mes']).dt.year
                 df_line = df_tendencia.groupby('año')['fatalidades'].sum().reset_index()
                 df_line.columns = ['fecha', 'fatalidades']
@@ -78,6 +180,5 @@ def mostrar_criticidad(fecha_ini, fecha_fin):
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("No hay datos de fatalidades en este periodo.")
-        
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_tendencia.head(20))

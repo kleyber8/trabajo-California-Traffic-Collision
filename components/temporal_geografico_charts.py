@@ -97,3 +97,108 @@ def render_tendencia_fatalidades(df_agregado):
         title=dict(font=dict(color=GOLD))
     )
     return fig
+
+def render_weather_lighting_grouped_bar(df_agregado):
+    """
+    Barras agrupadas: weather_1 en X, lighting como color, conteo en Y.
+    """
+    fig = px.bar(df_agregado, x='weather_1', y='conteo', color='lighting',
+                 barmode='group',
+                 title='Accidentes por Condición Climática e Iluminación',
+                 labels={'weather_1': 'Condición Climática', 'conteo': 'Número de Accidentes', 'lighting': 'Iluminación'},
+                 color_discrete_sequence=px.colors.qualitative.Set2)
+    fig.update_layout(
+        title=dict(text='Accidentes por Condición Climática e Iluminación', font=dict(color=GOLD)),
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COFFEE),
+        xaxis=dict(title='Condición Climática', gridcolor='#333', tickfont=dict(color=COFFEE), tickangle=-45),
+        yaxis=dict(title='Número de Accidentes', gridcolor='#333', tickfont=dict(color=COFFEE)),
+        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
+    )
+    return fig
+
+def render_road_lighting_grouped_bar(df_agregado):
+    """
+    Barras agrupadas: road_surface en X, lighting como color, conteo en Y.
+    """
+    fig = px.bar(df_agregado, x='road_surface', y='conteo', color='lighting',
+                 barmode='group',
+                 title='Accidentes por Tipo de Superficie de la Vía e Iluminación',
+                 labels={'road_surface': 'Superficie de la Vía', 'conteo': 'Número de Accidentes', 'lighting': 'Iluminación'},
+                 color_discrete_sequence=px.colors.qualitative.Set2)
+    fig.update_layout(
+        title=dict(text='Accidentes por Tipo de Superficie de la Vía e Iluminación', font=dict(color=GOLD)),
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COFFEE),
+        xaxis=dict(title='Superficie de la Vía', gridcolor='#333', tickfont=dict(color=COFFEE), tickangle=-45),
+        yaxis=dict(title='Número de Accidentes', gridcolor='#333', tickfont=dict(color=COFFEE)),
+        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
+    )
+    return fig
+
+def render_road_lighting_bubble(df_agregado):
+    """
+    Gráfico de burbujas mejorado:
+    - Eje X: Iluminación
+    - Eje Y: Superficie de la vía
+    - Tamaño: número de accidentes
+    - Color: número de accidentes (escala térmica)
+    - Burbujas con borde blanco y transparencia
+    """
+    fig = px.scatter(
+        df_agregado,
+        x='lighting',
+        y='road_surface',
+        size='conteo',
+        color='conteo',
+        color_continuous_scale='Plasma',  # escala más vistosa
+        size_max=70,                      # burbujas más grandes
+        title='Relación entre Superficie de la Vía e Iluminación en Accidentes',
+        labels={
+            'lighting': 'Condición de Iluminación',
+            'road_surface': 'Tipo de Superficie',
+            'conteo': 'Número de Accidentes'
+        },
+        hover_data={'conteo': ':,.0f'}
+    )
+    # Mejorar diseño
+    fig.update_traces(
+        marker=dict(
+            line=dict(width=1, color='white'),
+            opacity=0.8
+        )
+    )
+    fig.update_layout(
+        title=dict(
+            text='Relación entre Superficie de la Vía e Iluminación en Accidentes',
+            font=dict(color=GOLD, size=20),
+            x=0.5  # centrar título
+        ),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COFFEE, size=12),
+        xaxis=dict(
+            title=dict(font=dict(color=GOLD)),
+            gridcolor='#333333',
+            tickfont=dict(color=COFFEE),
+            tickangle=-45
+        ),
+        yaxis=dict(
+            title=dict(font=dict(color=GOLD)),
+            gridcolor='#333333',
+            tickfont=dict(color=COFFEE)
+        ),
+        legend=dict(
+            title=dict(text='Nº Accidentes', font=dict(color=GOLD)),
+            font=dict(color=TEXT_COLOR),
+            bgcolor=DARK_BG,
+            bordercolor=GOLD,
+            borderwidth=1
+        ),
+        coloraxis_colorbar=dict(
+            title='Accidentes',
+            tickfont=dict(color=COFFEE),
+            title_font=dict(color=GOLD)
+        )
+    )
+    return fig

@@ -20,23 +20,6 @@ def render_severidad_vs_equipo(df_agregado):
     )
     return fig
 
-def render_tendencia_alcohol_mensual(df_tendencia):
-    """
-    df_tendencia tiene columnas: fecha (datetime), condicion, conteo
-    """
-    fig = px.line(df_tendencia, x='fecha', y='conteo', color='condicion',
-                  markers=True, line_shape='linear',
-                  color_discrete_map={'Con Alcohol': COFFEE, 'Sobrio': GOLD, 'Otro/Desconocido': '#666666'},
-                  title='Evolución Mensual de Accidentes según Condición')
-    fig.update_layout(
-        title=dict(text='Evolución Mensual de Accidentes según Condición', font=dict(color=GOLD)),
-        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE),
-        xaxis=dict(title='Mes', gridcolor='#333', tickfont=dict(color=COFFEE)),
-        yaxis=dict(title='Cantidad de Accidentes', gridcolor='#333', tickfont=dict(color=COFFEE)),
-        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
-    )
-    return fig
 
 def render_barras_fatalidades(df_agregado):
     """
@@ -60,21 +43,8 @@ def render_barras_fatalidades(df_agregado):
 def render_boxplot_edad_por_tipo_colision(df_stats):
     """
     df_stats tiene columnas: type_of_collision, min, q1, median, q3, max
-    Usamos px.box con los estadísticos precalculados (no cajas superpuestas)
+    Usa go.Box con estadísticos precalculados y boxmode='group' para evitar superposición.
     """
-    # Creamos un DataFrame largo para que px.box entienda los cuartiles
-    data = []
-    for _, row in df_stats.iterrows():
-        data.append({
-            'type_of_collision': row['type_of_collision'],
-            'min': row['min'],
-            'q1': row['q1'],
-            'median': row['median'],
-            'q3': row['q3'],
-            'max': row['max']
-        })
-    df_long = pd.DataFrame(data)
-    # Para px.box necesitamos los valores reales, pero podemos usar go.Box con estadísticos (sin superposición)
     fig = go.Figure()
     for _, row in df_stats.iterrows():
         fig.add_trace(go.Box(
@@ -95,6 +65,60 @@ def render_boxplot_edad_por_tipo_colision(df_stats):
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(color=COFFEE),
         legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD),
-        boxmode='group'  # para que no se superpongan
+        boxmode='group'   # Evita que las cajas se superpongan
+    )
+    return fig
+
+def render_tendencia_alcohol_mensual(df_tendencia):
+    """
+    df_tendencia tiene columnas: mes (datetime), condicion, conteo
+    """
+    fig = px.line(df_tendencia, x='mes', y='conteo', color='condicion',
+                  markers=True, line_shape='linear',
+                  color_discrete_map={'Con Alcohol': COFFEE, 'Sobrio': GOLD, 'Otro/Desconocido': '#666666'})
+    fig.update_layout(
+        title=dict(text='Evolución Mensual de Accidentes según Condición', font=dict(color=GOLD)),
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COFFEE),
+        xaxis=dict(title='Mes', gridcolor='#333', tickfont=dict(color=COFFEE)),
+        yaxis=dict(title='Cantidad de Accidentes', gridcolor='#333', tickfont=dict(color=COFFEE)),
+        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
+    )
+    return fig
+
+def render_vehicle_type_severity(df_agregado):
+    """
+    Barras agrupadas: tipos de vehículo en X, severidad como color, conteo como Y.
+    """
+    fig = px.bar(df_agregado, x='tipo_vehiculo', y='conteo', color='severidad',
+                 barmode='group',
+                 title='Top Tipos de Vehículo según Severidad de Accidente',
+                 labels={'tipo_vehiculo': 'Tipo de Vehículo', 'conteo': 'Número de Accidentes', 'severidad': 'Severidad'},
+                 color_discrete_map={'Fatal': COFFEE, 'Grave': '#8B4513', 'Leve': '#CD853F', 'Daños': GOLD})
+    fig.update_layout(
+        title=dict(font=dict(color=GOLD)),
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COFFEE),
+        xaxis=dict(tickangle=-45, tickfont=dict(size=10)),
+        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
+    )
+    return fig
+
+def render_vehicle_year_severity(df_agregado):
+    """
+    Gráfico de líneas o área (usamos área para mayor impacto visual).
+    Muestra la evolución de accidentes por año del vehículo, segmentado por severidad.
+    """
+    fig = px.area(df_agregado, x='vehicle_year', y='conteo', color='severidad',
+                  title='Evolución de Accidentes por Año del Vehículo y Severidad',
+                  labels={'vehicle_year': 'Año de Fabricación', 'conteo': 'Número de Accidentes', 'severidad': 'Severidad'},
+                  color_discrete_map={'Fatal': COFFEE, 'Grave': '#8B4513', 'Leve': '#CD853F', 'Daños': GOLD})
+    fig.update_layout(
+        title=dict(font=dict(color=GOLD)),
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COFFEE),
+        xaxis=dict(title='Año del Vehículo', tickangle=-45),
+        yaxis=dict(title='Accidentes'),
+        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
     )
     return fig

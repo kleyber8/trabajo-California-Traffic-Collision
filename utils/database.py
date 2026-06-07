@@ -8,7 +8,6 @@ def get_md_connection():
     return duckdb.connect(f'md:accidentes_california?motherduck_token={token}')
 
 def ejecutar_consulta(sql: str, params=None):
-    """Ejecuta consulta sin agregar LIMIT (para agregaciones completas)."""
     conn = get_md_connection()
     if params:
         return conn.execute(sql, params).df()
@@ -16,7 +15,6 @@ def ejecutar_consulta(sql: str, params=None):
 
 @st.cache_data(ttl=600)
 def ejecutar_consulta_limitada(sql: str, params=None, limite=50):
-    """Ejecuta consulta añadiendo LIMIT si no existe."""
     conn = get_md_connection()
     sql_limpia = sql.rstrip(';')
     if 'LIMIT' not in sql_limpia.upper():
@@ -127,23 +125,6 @@ def get_raw_severidad_equipo_sample(fecha_ini: str, fecha_fin: str):
     """
     return ejecutar_consulta_limitada(sql, limite=20)
 
-def get_tendencia_alcohol_anual(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    SELECT 
-        EXTRACT(YEAR FROM CAST(c.collision_date AS DATE)) AS anio,
-        CASE 
-            WHEN LOWER(p.party_sobriety) LIKE '%had been drinking%' THEN 'Con Alcohol'
-            WHEN LOWER(p.party_sobriety) LIKE '%had not been drinking%' THEN 'Sobrio'
-            ELSE 'Otro/Desconocido'
-        END AS condicion,
-        COUNT(*) AS conteo
-    FROM parties p
-    JOIN collisions c ON p.case_id = c.case_id
-    WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    GROUP BY anio, condicion
-    ORDER BY anio
-    """
-    return ejecutar_consulta(sql)
 
 def get_raw_alcohol_sample(fecha_ini: str, fecha_fin: str):
     sql = f"""
@@ -155,57 +136,55 @@ def get_raw_alcohol_sample(fecha_ini: str, fecha_fin: str):
     """
     return ejecutar_consulta_limitada(sql, limite=20)
 
-def get_mapa_accidentes_fatales(fecha_ini: str, fecha_fin: str):
+def get_fatalidades_por_condado_factor(fecha_ini: str, fecha_fin: str):
     sql = f"""
     SELECT 
-        latitude,
-        longitude,
-        collision_severity,
-        killed_victims,
-        case_id,
-        collision_date
-    FROM collisions
-    WHERE latitude IS NOT NULL 
-      AND longitude IS NOT NULL
-      AND killed_victims > 0
-      AND CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
+        c.county_location AS condado,
+        c.primary_collision_factor AS factor,
+        SUM(c.killed_victims) AS fatalidades
+    FROM collisions c
+    WHERE c.killed_victims > 0
+      AND c.county_location IS NOT NULL
+      AND c.primary_collision_factor IS NOT NULL
+      AND CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
+    GROUP BY condado, factor
+    ORDER BY fatalidades DESC
     """
     return ejecutar_consulta(sql)
 
-def get_raw_mapa_sample(fecha_ini: str, fecha_fin: str):
+def get_boxplot_stats_edad_tipo_colision(fecha_ini: str, fecha_fin: str):
     sql = f"""
-    SELECT latitude, longitude, collision_severity, killed_victims
-    FROM collisions
-    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-      AND killed_victims > 0
-      AND CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    LIMIT 20
-    """
-    return ejecutar_consulta_limitada(sql, limite=20)
-
-def get_boxplot_edad_tipo_colision(fecha_ini: str, fecha_fin: str):
-    sql = f"""
+    WITH edades AS (
+        SELECT 
+            c.type_of_collision,
+            v.victim_age
+        FROM victims v
+        JOIN collisions c ON v.case_id = c.case_id
+        WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
+          AND v.victim_age IS NOT NULL
+          AND c.type_of_collision IS NOT NULL
+    )
     SELECT 
-        v.victim_age,
-        c.type_of_collision,
-        v.victim_sex
-    FROM victims v
-    JOIN collisions c ON v.case_id = c.case_id
-    WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-      AND v.victim_age IS NOT NULL
-      AND c.type_of_collision IS NOT NULL
+        type_of_collision,
+        MIN(victim_age) AS min,
+        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY victim_age) AS q1,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY victim_age) AS median,
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY victim_age) AS q3,
+        MAX(victim_age) AS max
+    FROM edades
+    GROUP BY type_of_collision
     """
     return ejecutar_consulta(sql)
 
-def get_raw_boxplot_sample(fecha_ini: str, fecha_fin: str):
+def get_total_fatalidades(fecha_ini: str, fecha_fin: str):
     sql = f"""
-    SELECT v.victim_age, c.type_of_collision, v.victim_sex
-    FROM victims v
-    JOIN collisions c ON v.case_id = c.case_id
-    WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    LIMIT 20
+    SELECT SUM(killed_victims) AS total
+    FROM collisions
+    WHERE killed_victims > 0
+      AND CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
     """
-    return ejecutar_consulta_limitada(sql, limite=20)
+    df = ejecutar_consulta(sql)
+    return df.iloc[0]['total'] if not df.empty else 0
 
 # ------------------- CRITICIDAD TEMPORAL -------------------
 def get_areas_severidad(fecha_ini: str, fecha_fin: str):
@@ -293,65 +272,6 @@ def get_raw_waterfall_sample(fecha_ini: str, fecha_fin: str):
     """
     return ejecutar_consulta_limitada(sql, limite=20)
 
-def get_scatter_animado(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    SELECT 
-        latitude,
-        longitude,
-        EXTRACT(YEAR FROM CAST(collision_date AS DATE)) AS anio,
-        CASE 
-            WHEN LOWER(collision_severity) = 'fatal' THEN 'Fatal'
-            WHEN LOWER(collision_severity) = 'pain' THEN 'Grave'
-            WHEN LOWER(collision_severity) = 'other injury' THEN 'Leve'
-            WHEN LOWER(collision_severity) = 'property damage only' THEN 'Daños'
-            ELSE 'Otro'
-        END AS severidad,
-        killed_victims
-    FROM collisions
-    WHERE latitude IS NOT NULL 
-      AND longitude IS NOT NULL
-      AND killed_victims > 0
-      AND CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    """
-    return ejecutar_consulta(sql)
-
-def get_raw_scatter_sample(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    SELECT latitude, longitude, collision_severity, killed_victims
-    FROM collisions
-    WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-      AND killed_victims > 0
-      AND CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    LIMIT 20
-    """
-    return ejecutar_consulta_limitada(sql, limite=20)
-
-# ------------------- FECHAS GLOBALES -------------------
-def get_global_date_range():
-    sql = "SELECT MIN(CAST(collision_date AS DATE)) as min_date, MAX(CAST(collision_date AS DATE)) as max_date FROM collisions"
-    df = ejecutar_consulta(sql)
-    if not df.empty:
-        return df.iloc[0]['min_date'], df.iloc[0]['max_date']
-    return '2018-01-01', '2021-12-31'
-
-
-def get_treemap_fatalidades(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    SELECT 
-        c.location_type AS condado,
-        c.primary_collision_factor AS factor,
-        COUNT(*) AS fatalidades
-    FROM collisions c
-    WHERE c.killed_victims > 0
-      AND c.location_type IS NOT NULL
-      AND c.primary_collision_factor IS NOT NULL
-      AND CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    GROUP BY condado, factor
-    ORDER BY fatalidades DESC
-    LIMIT 100
-    """
-    return ejecutar_consulta(sql)
-
 def get_tendencia_fatalidades(fecha_ini: str, fecha_fin: str):
     sql = f"""
     SELECT 
@@ -365,162 +285,17 @@ def get_tendencia_fatalidades(fecha_ini: str, fecha_fin: str):
     """
     return ejecutar_consulta(sql)
 
-def get_boxplot_stats_edad_tipo_colision(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    WITH edades AS (
-        SELECT 
-            c.type_of_collision,
-            v.victim_age
-        FROM victims v
-        JOIN collisions c ON v.case_id = c.case_id
-        WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-          AND v.victim_age IS NOT NULL
-          AND c.type_of_collision IS NOT NULL
-    )
-    SELECT 
-        type_of_collision,
-        MIN(victim_age) AS min,
-        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY victim_age) AS q1,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY victim_age) AS median,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY victim_age) AS q3,
-        MAX(victim_age) AS max
-    FROM edades
-    GROUP BY type_of_collision
-    """
-    return ejecutar_consulta(sql)
-
-def get_total_fatalidades(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    SELECT SUM(killed_victims) AS total
-    FROM collisions
-    WHERE killed_victims > 0
-      AND CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    """
+def get_global_date_range():
+    sql = "SELECT MIN(CAST(collision_date AS DATE)) as min_date, MAX(CAST(collision_date AS DATE)) as max_date FROM collisions"
     df = ejecutar_consulta(sql)
-    return df.iloc[0]['total'] if not df.empty else 0
-
-def get_boxplot_stats_edad_tipo_colision(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    WITH edades AS (
-        SELECT 
-            c.type_of_collision,
-            v.victim_age
-        FROM victims v
-        JOIN collisions c ON v.case_id = c.case_id
-        WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-          AND v.victim_age IS NOT NULL
-          AND c.type_of_collision IS NOT NULL
-    )
-    SELECT 
-        type_of_collision,
-        MIN(victim_age) AS min,
-        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY victim_age) AS q1,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY victim_age) AS median,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY victim_age) AS q3,
-        MAX(victim_age) AS max
-    FROM edades
-    GROUP BY type_of_collision
-    """
-    return ejecutar_consulta(sql)
-
-def get_total_fatalidades(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    SELECT SUM(killed_victims) AS total
-    FROM collisions
-    WHERE killed_victims > 0
-      AND CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    """
-    df = ejecutar_consulta(sql)
-    return df.iloc[0]['total'] if not df.empty else 0
-
-def get_datos_barras_fatalidades(fecha_ini: str, fecha_fin: str, agrupar_por='condado'):
-    """
-    agrupar_por: 'condado' o 'factor'
-    Devuelve DataFrame con columnas 'categoria' y 'fatalidades'
-    """
-    if agrupar_por == 'condado':
-        sql = f"""
-        SELECT 
-            c.location_type AS categoria,
-            SUM(c.killed_victims) AS fatalidades
-        FROM collisions c
-        WHERE c.killed_victims > 0
-          AND c.location_type IS NOT NULL
-          AND CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-        GROUP BY categoria
-        ORDER BY fatalidades DESC
-        LIMIT 20
-        """
-    else:  # factor
-        sql = f"""
-        SELECT 
-            c.primary_collision_factor AS categoria,
-            SUM(c.killed_victims) AS fatalidades
-        FROM collisions c
-        WHERE c.killed_victims > 0
-          AND c.primary_collision_factor IS NOT NULL
-          AND CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-        GROUP BY categoria
-        ORDER BY fatalidades DESC
-        LIMIT 20
-        """
-    return ejecutar_consulta(sql)
-
-def get_datos_correlacion_alcohol(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    SELECT 
-        EXTRACT(YEAR FROM CAST(c.collision_date AS DATE)) AS año,
-        COUNT(*) AS total_accidentes,
-        SUM(CASE WHEN LOWER(p.party_sobriety) LIKE '%had been drinking%' THEN 1 ELSE 0 END) AS total_alcohol
-    FROM collisions c
-    JOIN parties p ON c.case_id = p.case_id
-    WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    GROUP BY año
-    ORDER BY año
-    """
-    df = ejecutar_consulta(sql)
-    df['tasa_alcohol'] = (df['total_alcohol'] / df['total_accidentes']) * 100
-    return df
-
-def get_fatalidades_por_condado_factor(fecha_ini: str, fecha_fin: str):
-    sql = f"""
-    SELECT 
-        c.location_type AS condado,
-        c.primary_collision_factor AS factor,
-        SUM(c.killed_victims) AS fatalidades
-    FROM collisions c
-    WHERE c.killed_victims > 0
-      AND c.location_type IS NOT NULL
-      AND c.primary_collision_factor IS NOT NULL
-      AND CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    GROUP BY condado, factor
-    ORDER BY fatalidades DESC
-    """
-    return ejecutar_consulta(sql)
-
-def get_tendencia_alcohol_anual(fecha_ini: str, fecha_fin: str):
-    # Esta ya existía, pero la dejamos igual (devuelve año, condicion, conteo)
-    sql = f"""
-    SELECT 
-        EXTRACT(YEAR FROM CAST(c.collision_date AS DATE)) AS anio,
-        CASE 
-            WHEN LOWER(p.party_sobriety) LIKE '%had been drinking%' THEN 'Con Alcohol'
-            WHEN LOWER(p.party_sobriety) LIKE '%had not been drinking%' THEN 'Sobrio'
-            ELSE 'Otro/Desconocido'
-        END AS condicion,
-        COUNT(*) AS conteo
-    FROM parties p
-    JOIN collisions c ON p.case_id = c.case_id
-    WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    GROUP BY anio, condicion
-    ORDER BY anio
-    """
-    return ejecutar_consulta(sql)
+    if not df.empty:
+        return df.iloc[0]['min_date'], df.iloc[0]['max_date']
+    return '2018-01-01', '2021-12-31'
 
 def get_tendencia_alcohol_mensual(fecha_ini: str, fecha_fin: str):
     sql = f"""
     SELECT 
-        DATE_TRUNC('month', CAST(c.collision_date AS DATE)) AS fecha,
+        DATE_TRUNC('month', CAST(c.collision_date AS DATE)) AS mes,
         CASE 
             WHEN LOWER(p.party_sobriety) LIKE '%had been drinking%' THEN 'Con Alcohol'
             WHEN LOWER(p.party_sobriety) LIKE '%had not been drinking%' THEN 'Sobrio'
@@ -530,7 +305,66 @@ def get_tendencia_alcohol_mensual(fecha_ini: str, fecha_fin: str):
     FROM parties p
     JOIN collisions c ON p.case_id = c.case_id
     WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
-    GROUP BY fecha, condicion
-    ORDER BY fecha
+    GROUP BY mes, condicion
+    ORDER BY mes
+    """
+    return ejecutar_consulta(sql)
+
+def get_weather_lighting_data(fecha_ini: str, fecha_fin: str):
+    sql = f"""
+    SELECT 
+        COALESCE(weather_1, 'Desconocido') AS weather_1,
+        COALESCE(lighting, 'Desconocido') AS lighting,
+        COUNT(*) AS conteo
+    FROM collisions
+    WHERE CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
+    GROUP BY weather_1, lighting
+    ORDER BY weather_1, lighting
+    """
+    return ejecutar_consulta(sql)
+
+def get_road_lighting_data(fecha_ini: str, fecha_fin: str):
+    sql = f"""
+    SELECT 
+        COALESCE(road_surface, 'Desconocido') AS road_surface,
+        COALESCE(lighting, 'Desconocido') AS lighting,
+        COUNT(*) AS conteo
+    FROM collisions
+    WHERE CAST(collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
+    GROUP BY road_surface, lighting
+    ORDER BY road_surface, lighting
+    """
+    return ejecutar_consulta(sql)
+
+def get_vehicle_type_severity(fecha_ini: str, fecha_fin: str):
+    sql = f"""
+    SELECT 
+        p.statewide_vehicle_type AS tipo_vehiculo,
+        c.collision_severity AS severidad,
+        COUNT(*) AS conteo
+    FROM parties p
+    JOIN collisions c ON p.case_id = c.case_id
+    WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
+      AND p.statewide_vehicle_type IS NOT NULL
+      AND c.collision_severity IS NOT NULL
+    GROUP BY tipo_vehiculo, severidad
+    ORDER BY tipo_vehiculo, conteo DESC
+    """
+    return ejecutar_consulta(sql)
+
+def get_vehicle_year_severity(fecha_ini: str, fecha_fin: str):
+    sql = f"""
+    SELECT 
+        p.vehicle_year,
+        c.collision_severity AS severidad,
+        COUNT(*) AS conteo
+    FROM parties p
+    JOIN collisions c ON p.case_id = c.case_id
+    WHERE CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
+      AND p.vehicle_year IS NOT NULL
+      AND p.vehicle_year BETWEEN 1950 AND 2025  -- filtrar años extremos
+      AND c.collision_severity IS NOT NULL
+    GROUP BY vehicle_year, severidad
+    ORDER BY vehicle_year
     """
     return ejecutar_consulta(sql)
