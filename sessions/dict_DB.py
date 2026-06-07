@@ -1,7 +1,18 @@
 import streamlit as st
 
 def mostrar_diccionario_datos():
-    st.markdown("<h1 style='color: #D4AF37;'>Diccionario de datos</h1>",unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
+        <h1 style="color: #D4AF37; margin: 0;">📚 Diccionario de datos</h1>
+        <p style="color: #FFFFFF; font-size: 18px; margin-top: 5px;">
+            <span style="color: #D4AF37; font-weight: bold;">Estructura de las tablas</span> · 
+            Columnas y su uso en el análisis
+        </p>
+        <p style="color: #CCCCCC; margin-bottom: 0;">
+            Fuente: <span style="color: #D4AF37;">California Highway Patrol</span> – SWITRS
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     st.divider()
     
     st.header("Resumen")
@@ -52,6 +63,5 @@ def mostrar_diccionario_datos():
         
 
     st.markdown("""## Fuente de datos
-
 Kaggle Dataset:
 [BD-SWITRS](https://www.kaggle.com/datasets/alexgude/california-traffic-collision-data-from-switrs)""")

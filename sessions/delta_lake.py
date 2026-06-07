@@ -1,7 +1,18 @@
 import streamlit as st
 
 def mostrar_delta_lake():
-    st.markdown("<h1 style='color: #D4AF37;'>🐍 Delta Lake</h1>",unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
+        <h1 style="color: #D4AF37; margin: 0;">🐍 Delta Lake</h1>
+        <p style="color: #FFFFFF; font-size: 18px; margin-top: 5px;">
+            <span style="color: #D4AF37; font-weight: bold;">Almacenamiento transaccional en Data Lakes</span> · 
+            Versionado y optimización de datos
+        </p>
+        <p style="color: #CCCCCC; margin-bottom: 0;">
+            Fuente: <span style="color: #D4AF37;">California Highway Patrol</span> – SWITRS
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     st.divider()
     
     st.header("Lógica detrás de la delimitación de la data")
@@ -12,7 +23,7 @@ def mostrar_delta_lake():
     st.markdown("---")
     
     
-    st.subheader("Porque lo utilizamos?")
+    st.subheader("¿Por qué lo utilizamos?")
     st.write("""
             Debido a que no es posible subir la BD de SWITRS completa se utilizaron parquets (100.000 filas) de cada
             tabla a modo de ejemplo, de esta manera y utilizando el delta lake se guardo un registro/versiones de todos

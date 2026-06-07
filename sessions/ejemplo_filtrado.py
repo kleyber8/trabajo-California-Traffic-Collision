@@ -1,8 +1,20 @@
+
 import streamlit as st
 from utils.database import ejecutar_consulta_limitada
 
 def mostrar_querys_filtrado():
-    st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Panel de Control</h1>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
+        <h1 style="color: #D4AF37; margin: 0;">⛁ Querys de filtrado: Panel de Control</h1>
+        <p style="color: #FFFFFF; font-size: 18px; margin-top: 5px;">
+            <span style="color: #D4AF37; font-weight: bold;">Normalización y denormalización</span> · 
+            Ejemplos de consultas para la depuración de datos
+        </p>
+        <p style="color: #CCCCCC; margin-bottom: 0;">
+            Fuente: <span style="color: #D4AF37;">California Highway Patrol</span> – SWITRS
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     st.divider()
 
     tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
@@ -10,6 +22,8 @@ def mostrar_querys_filtrado():
         "1. Case IDs", "2. Collisions", "3. Parties", "4. Victims",
         "5. Involved Victims", "6. Denormalizacion_1", "7. Denormalizacion_2", "8. Denormalizacion_3"
     ])
+
+
 
     with tab0:
         st.header("Puntos a tener en cuenta")
@@ -28,6 +42,7 @@ def mostrar_querys_filtrado():
     analisis interno del trabajo. 
     """)
 
+    # -------------------- TAB 1: CASE IDS --------------------
     with tab1:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Primera selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -44,17 +59,18 @@ def mostrar_querys_filtrado():
         st.markdown("---")
         st.subheader("📝 Ejecutar Consulta")
         query_default = "SELECT * FROM case_ids WHERE db_year IN ('2020', '2021')"
-        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=100, key="sql_1")
-        if st.button("Primer ejemplo de filtrado", key="btn_1"):
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=100, key="sql_f1_final")
+        if st.button("Primer ejemplo de filtrado", key="btn_f1_final"):
             try:
                 resultado = ejecutar_consulta_limitada(sql_input, limite=20)
                 st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
                 st.dataframe(resultado, use_container_width=True)
                 csv = resultado.to_csv(index=False)
-                st.download_button("Descargar CSV", csv, "resultado_1.csv", "text/csv", key="dl_1")
+                st.download_button("Descargar CSV", csv, "resultado_1.csv", "text/csv", key="dl_f1_final")
             except Exception as e:
                 st.error(f"Error en la consulta SQL: {e}")
 
+    # -------------------- TAB 2: COLLISIONS --------------------
     with tab2:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Segunda selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -77,17 +93,18 @@ longitude, latitude, party_count, collision_date, collision_time, road_surface, 
 FROM collisions
 WHERE collision_date BETWEEN '2018-01-01' AND '2021-12-31'
 """
-        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_2")
-        if st.button("Segundo ejemplo de filtrado", key="btn_2"):
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_f2_final")
+        if st.button("Segundo ejemplo de filtrado", key="btn_f2_final"):
             try:
                 resultado = ejecutar_consulta_limitada(sql_input, limite=20)
                 st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
                 st.dataframe(resultado, use_container_width=True)
                 csv = resultado.to_csv(index=False)
-                st.download_button("Descargar CSV", csv, "resultado_2.csv", "text/csv", key="dl_2")
+                st.download_button("Descargar CSV", csv, "resultado_2.csv", "text/csv", key="dl_f2_final")
             except Exception as e:
                 st.error(f"Error en la consulta SQL: {e}")
 
+    # -------------------- TAB 3: PARTIES --------------------
     with tab3:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Tercera selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -106,17 +123,18 @@ party_drug_physical, movement_preceding_collision, at_fault, vehicle_make, vehic
 cellphone_in_use, statewide_vehicle_type, party_safety_equipment_1, party_safety_equipment_2
 FROM parties
 """
-        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_3")
-        if st.button("Tercer ejemplo de filtrado", key="btn_3"):
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_f3_final")
+        if st.button("Tercer ejemplo de filtrado", key="btn_f3_final"):
             try:
                 resultado = ejecutar_consulta_limitada(sql_input, limite=20)
                 st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
                 st.dataframe(resultado, use_container_width=True)
                 csv = resultado.to_csv(index=False)
-                st.download_button("Descargar CSV", csv, "resultado_3.csv", "text/csv", key="dl_3")
+                st.download_button("Descargar CSV", csv, "resultado_3.csv", "text/csv", key="dl_f3_final")
             except Exception as e:
                 st.error(f"Error en la consulta SQL: {e}")
 
+    # -------------------- TAB 4: VICTIMS --------------------
     with tab4:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Cuarta selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -136,17 +154,18 @@ victim_degree_of_injury, victim_seating_position, victim_safety_equipment_1,
 victim_safety_equipment_2, victim_ejected
 FROM victims
 """
-        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_4")
-        if st.button("Cuarto ejemplo de filtrado", key="btn_4"):
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=180, key="sql_f4_final")
+        if st.button("Cuarto ejemplo de filtrado", key="btn_f4_final"):
             try:
                 resultado = ejecutar_consulta_limitada(sql_input, limite=20)
                 st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
                 st.dataframe(resultado, use_container_width=True)
                 csv = resultado.to_csv(index=False)
-                st.download_button("Descargar CSV", csv, "resultado_4.csv", "text/csv", key="dl_4")
+                st.download_button("Descargar CSV", csv, "resultado_4.csv", "text/csv", key="dl_f4_final")
             except Exception as e:
                 st.error(f"Error en la consulta SQL: {e}")
 
+    # -------------------- TAB 5: INVOLVED VICTIMS (optimizada) --------------------
     with tab5:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de filtrado: Quinta selección de datos</h1>", unsafe_allow_html=True)
         st.divider()
@@ -160,33 +179,32 @@ FROM victims
     de las victimas de de esta base de datos. 
     """)
         st.markdown("---")
-        st.subheader("📝 Ejecutar Consulta")
+        st.subheader("📝 Ejecutar Consulta (versión optimizada para muestra)")
         query_default = """
-WITH biometria_maestra AS (
-    SELECT v.id,
-        (SELECT v2.victim_sex FROM victims v2 WHERE v2.id = v.id AND v2.victim_sex IS NOT NULL AND v2.victim_sex NOT IN ('', 'UNKNOWN', 'NOT_SPECIFIED') GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1) AS sexo_real,
-        (SELECT (CAST(SUBSTR(c2.collision_date, 1, 4) AS INT) - v3.victim_age) FROM victims v3 JOIN collisions c2 ON v3.case_id = c2.case_id WHERE v3.id = v.id AND v3.victim_age > 0 AND v3.victim_age < 110 GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1) AS anio_nac_real
-    FROM victims v WHERE v.id IS NOT NULL GROUP BY v.id
-)
-SELECT v.id, v.case_id, bm.sexo_real,
-    CASE 
-        WHEN bm.anio_nac_real IS NULL THEN NULL
-        WHEN (CAST(SUBSTR(c.collision_date, 1, 4) AS INT) - bm.anio_nac_real) NOT BETWEEN 0 AND 110 THEN NULL
-        ELSE (CAST(SUBSTR(c.collision_date, 1, 4) AS INT) - bm.anio_nac_real)
-    END AS victim_age
-FROM victims v JOIN collisions c ON v.case_id = c.case_id LEFT JOIN biometria_maestra bm ON v.id = bm.id
+SELECT 
+    v.id,
+    v.case_id,
+    v.victim_sex AS sexo_real,
+    CAST(SUBSTR(c.collision_date, 1, 4) AS INT) - v.victim_age AS anio_nacimiento_estimado,
+    v.victim_age
+FROM victims v
+JOIN collisions c ON v.case_id = c.case_id
+WHERE v.victim_age IS NOT NULL 
+  AND v.victim_age BETWEEN 0 AND 110
+LIMIT 20
 """
-        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=280, key="sql_5")
-        if st.button("Quinto ejemplo de filtrado", key="btn_5"):
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=200, key="sql_f5_final")
+        if st.button("Quinto ejemplo de filtrado", key="btn_f5_final"):
             try:
                 resultado = ejecutar_consulta_limitada(sql_input, limite=20)
                 st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
                 st.dataframe(resultado, use_container_width=True)
                 csv = resultado.to_csv(index=False)
-                st.download_button("Descargar CSV", csv, "resultado_5.csv", "text/csv", key="dl_5")
+                st.download_button("Descargar CSV", csv, "resultado_5.csv", "text/csv", key="dl_f5_final")
             except Exception as e:
                 st.error(f"Error en la consulta SQL: {e}")
 
+    # -------------------- TAB 6: DENORMALIZACION 1 --------------------
     with tab6:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de denormalización: ¿Cúal es el perfil demografico de las victimas y la severidad de sus lesiones sufridas?</h1>", unsafe_allow_html=True)
         st.divider()
@@ -213,17 +231,18 @@ FROM involved_victims iv
 JOIN victims v ON v.id = iv.id
 JOIN collisions c ON c.case_id = iv.case_id
 """
-        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=220, key="sql_6")
-        if st.button("Ejecutar denormalización 1", key="btn_6"):
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=220, key="sql_f6_final")
+        if st.button("Ejecutar denormalización 1", key="btn_f6_final"):
             try:
                 resultado = ejecutar_consulta_limitada(sql_input, limite=20)
                 st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
                 st.dataframe(resultado, use_container_width=True)
                 csv = resultado.to_csv(index=False)
-                st.download_button("Descargar CSV", csv, "resultado_6.csv", "text/csv", key="dl_6")
+                st.download_button("Descargar CSV", csv, "resultado_6.csv", "text/csv", key="dl_f6_final")
             except Exception as e:
                 st.error(f"Error en la consulta SQL: {e}")
 
+    # -------------------- TAB 7: DENORMALIZACION 2 --------------------
     with tab7:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de denormalización: ¿De qué manera influyen los factores de riesgo en la severidad del accidente y en la dinamica del vehículo?</h1>", unsafe_allow_html=True)
         st.divider()
@@ -257,17 +276,18 @@ SELECT
 FROM collisions c
 JOIN parties p ON p.case_id = c.case_id
 """
-        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=260, key="sql_7")
-        if st.button("Ejecutar denormalización 2", key="btn_7"):
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=260, key="sql_f7_final")
+        if st.button("Ejecutar denormalización 2", key="btn_f7_final"):
             try:
                 resultado = ejecutar_consulta_limitada(sql_input, limite=20)
                 st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
                 st.dataframe(resultado, use_container_width=True)
                 csv = resultado.to_csv(index=False)
-                st.download_button("Descargar CSV", csv, "resultado_7.csv", "text/csv", key="dl_7")
+                st.download_button("Descargar CSV", csv, "resultado_7.csv", "text/csv", key="dl_f7_final")
             except Exception as e:
                 st.error(f"Error en la consulta SQL: {e}")
 
+    # -------------------- TAB 8: DENORMALIZACION 3 --------------------
     with tab8:
         st.markdown("<h1 style='color: #D4AF37;'>⛁ Querys de denormalización: ¿Cómo influye el entorno en la severidad del accidente?</h1>", unsafe_allow_html=True)
         st.divider()
@@ -296,13 +316,13 @@ v.victim_degree_of_injury
 FROM collisions c
 JOIN victims v ON v.case_id = c.case_id
 """
-        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=250, key="sql_8")
-        if st.button("Ejecutar denormalización 3", key="btn_8"):
+        sql_input = st.text_area("Escribe tu consulta SQL aquí:", value=query_default, height=250, key="sql_f8_final")
+        if st.button("Ejecutar denormalización 3", key="btn_f8_final"):
             try:
                 resultado = ejecutar_consulta_limitada(sql_input, limite=20)
                 st.markdown("<h3 style='color: #D4AF37;'>Resultado:</h3>", unsafe_allow_html=True)
                 st.dataframe(resultado, use_container_width=True)
                 csv = resultado.to_csv(index=False)
-                st.download_button("Descargar CSV", csv, "resultado_8.csv", "text/csv", key="dl_8")
+                st.download_button("Descargar CSV", csv, "resultado_8.csv", "text/csv", key="dl_f8_final")
             except Exception as e:
                 st.error(f"Error en la consulta SQL: {e}")

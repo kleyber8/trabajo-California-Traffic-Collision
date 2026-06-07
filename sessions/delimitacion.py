@@ -1,7 +1,18 @@
 import streamlit as st
 
 def mostrar_delimitacion():
-    st.markdown("<h1 style='color: #D4AF37;'>Delimitacion</h1>",unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
+        <h1 style="color: #D4AF37; margin: 0;">🔍 Delimitación de datos</h1>
+        <p style="color: #FFFFFF; font-size: 18px; margin-top: 5px;">
+            <span style="color: #D4AF37; font-weight: bold;">Criterios de selección y depuración</span> · 
+            De 9.25 GB a 1.7 GB de información relevante
+        </p>
+        <p style="color: #CCCCCC; margin-bottom: 0;">
+            Fuente: <span style="color: #D4AF37;">California Highway Patrol</span> – SWITRS
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     st.divider()
     
     st.header("Lógica detrás de la delimitación de la data")

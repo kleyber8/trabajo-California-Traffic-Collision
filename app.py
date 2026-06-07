@@ -1,6 +1,6 @@
 import streamlit as st
 from utils.database import ejecutar_consulta_limitada, get_global_date_range
-from sessions import Introduccion, querys, ejemplo_filtrado, dict_DB, criticidad_temporal, delimitacion, delta_lake, demografia, factores_riesgo
+from sessions import Introduccion, consultas_profesor, dict_DB, criticidad_temporal, delimitacion, delta_lake, demografia, ejemplo_filtrado, factores_riesgo
 
 st.set_page_config(page_title="SWITRS California", page_icon="🚗", layout="wide")
 
@@ -66,19 +66,16 @@ with st.sidebar:
     st.markdown("### 📊 Periodo")
     st.caption("Seleccione el entorno:")
 
-    # Selector de Entorno Cronológico
     filtro_etapa = st.radio(
         "Entorno cronológico:",
         ["Histórico Completo", "Pandemia", "Post-Pandemia"],
         label_visibility="collapsed"
     )
 
-    # Variables de control temporal (como estaban originalmente)
     fecha_inicio_exacta = None
     fecha_fin_exacta = None
     filtro_anio = "Todos"
 
-    # Lógica de mapeo automático según el botón seleccionado
     if filtro_etapa == "Pandemia":
         filtro_anio = "Todos"
         fecha_inicio_exacta = "2020-03-19"
@@ -94,30 +91,35 @@ with st.sidebar:
         st.caption("📅 **Corte: Desde 25/Ene/2021 en adelante**")
 
     else:
-        # Si es Histórico Completo, habilitamos el selectbox clásico de año
         st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown("### Filtrado por año")
         opciones_anio = ["Todos", 2018, 2019, 2020, 2021]
         filtro_anio = st.selectbox("Año de análisis:", opciones_anio, index=0)
-        # Para Histórico Completo, obtenemos las fechas globales (mín y max) y luego aplicamos filtro de año si es necesario
         min_date_global, max_date_global = get_global_date_range()
         fecha_inicio_exacta = min_date_global
         fecha_fin_exacta = max_date_global
-        # Si se selecciona un año específico, ajustamos las fechas a ese año
         if filtro_anio != "Todos":
             fecha_inicio_exacta = f"{filtro_anio}-01-01"
             fecha_fin_exacta = f"{filtro_anio}-12-31"
 
-# Determinar las fechas finales a pasar a las páginas
-# Usamos las variables que ya calculamos: fecha_inicio_exacta y fecha_fin_exacta
 fecha_ini = fecha_inicio_exacta
 fecha_fin = fecha_fin_exacta
 
 opcion = st.session_state.pagina_actual
 
 if opcion == "Presentación":
-    st.markdown("<h1 style='color: #D4AF37; text-align: center; font-size: 40px;'>🚗 SWITRS: Presentación Principal</h1>", unsafe_allow_html=True)
-    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background-color: #121212; padding: 20px; border-radius: 10px; border-left: 5px solid #D4AF37; margin-bottom: 20px;">
+        <h1 style="color: #D4AF37; margin: 0;">🚗 SWITRS: Presentación Principal</h1>
+        <p style="color: #FFFFFF; font-size: 18px; margin-top: 5px;">
+            <span style="color: #D4AF37; font-weight: bold;">Datos de siniestralidad en California</span> · 
+            Análisis exploratorio y visualizaciones interactivas
+        </p>
+        <p style="color: #CCCCCC; margin-bottom: 0;">
+            Fuente: <span style="color: #D4AF37;">California Highway Patrol</span> – SWITRS
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     st.image("assets/Copia de Introducción (1).png", caption="Análisis Estadístico del Sistema de Registro de Colisiones de California", use_container_width=True)
     st.markdown(f"<div style='text-align: center; color: #FFFFFF; font-size: 18px;'>Entorno: <span style='color: #D4AF37;'>{filtro_etapa}</span> ({fecha_ini} a {fecha_fin})</div>", unsafe_allow_html=True)
     sql_muestra = f"SELECT * FROM collisions WHERE collision_date BETWEEN '{fecha_ini}' AND '{fecha_fin}' LIMIT 50"
@@ -140,7 +142,12 @@ elif opcion == "Delta Lake":
 elif opcion == "Delimitacion de datos":
     delimitacion.mostrar_delimitacion()
 elif opcion == "Querys":
-    querys.mostrar_querys()
+    import importlib
+    import sessions.consultas_profesor as consultas
+    importlib.reload(consultas)
+    consultas.mostrar_consultas()
 elif opcion == "Querys de filtrado":
-    ejemplo_filtrado.mostrar_querys_filtrado()
-    
+    import importlib
+    import sessions.ejemplo_filtrado as filtrado
+    importlib.reload(filtrado)
+    filtrado.mostrar_querys_filtrado()

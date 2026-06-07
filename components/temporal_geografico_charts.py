@@ -77,3 +77,23 @@ def render_scatter_animado(df_agregado):
         legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
     )
     return fig
+
+def render_tendencia_fatalidades(df_agregado):
+    """
+    df_agregado tiene columnas: fecha (datetime), fatalidades (acumuladas)
+    """
+    fig = px.line(
+        df_agregado, x='fecha', y='fatalidades',
+        title='Evolución de Fatalidades en el Tiempo',
+        markers=True,
+        line_shape='linear'
+    )
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COFFEE),
+        xaxis=dict(title='Fecha', gridcolor='#333'),
+        yaxis=dict(title='Número de Fatalidades', gridcolor='#333'),
+        title=dict(font=dict(color=GOLD))
+    )
+    return fig
