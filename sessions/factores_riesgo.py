@@ -123,6 +123,17 @@ def mostrar_factores_riesgo(fecha_ini, fecha_fin):
                 st.warning("Selecciona al menos un tipo de colisión.")
         else:
             st.warning("No hay datos suficientes para el boxplot.")
+
+        st.markdown("""
+**Interpretación del gráfico de cajas:**
+
+El diagrama de cajas muestra la distribución de edades de las víctimas según el tipo de colisión. Se observa que los accidentes por alcance trasero (rear end) y colisiones laterales (broadside) afectan a un rango de edad más amplio, con edades que oscilan entre los 20 y los 60 años, lo que refleja el perfil típico de los conductores en activo. Por el contrario, los accidentes que involucran peatones (pedestrian) presentan una edad mediana más elevada y una mayor dispersión, lo que podría indicar una mayor vulnerabilidad de las personas mayores en este tipo de siniestros.
+
+Los choques frontales (head-on) muestran la edad mediana más alta (alrededor de los 45 años) y una distribución más compacta, lo que sugiere que este tipo de colisiones afecta predominantemente a conductores de mediana edad. Este hallazgo es relevante para orientar campañas de seguridad vial específicas, por ejemplo, enfatizando la importancia del cinturón de seguridad y la conducción defensiva en grupos de edad con mayor riesgo.
+
+En general, estos resultados confirman que el perfil etario de las víctimas varía significativamente según el tipo de colisión, lo que subraya la necesidad de diseñar políticas de prevención diferenciadas por grupo de edad y tipo de siniestro.
+""")
+        
         with st.expander("📄 Ver estadísticos utilizados (min, Q1, mediana, Q3, max)"):
             st.dataframe(df_boxplot_stats)
 

@@ -48,6 +48,15 @@ def mostrar_demografia(fecha_ini, fecha_fin):
     with col2:
         st.plotly_chart(render_distribucion_sexo(df_sexo), use_container_width=True)
 
+    st.markdown("""
+**Interpretación de los gráficos demográficos:**
+
+La pirámide poblacional de víctimas muestra una distribución claramente sesgada hacia los varones, quienes representan el 51.3% del total de víctimas (519,025 casos), frente al 48.7% de mujeres. Esta diferencia es más pronunciada en los rangos de edad comprendidos entre los 15 y los 44 años, donde se concentra el mayor número de víctimas de ambos sexos. Este patrón sugiere que los hombres jóvenes y adultos son el grupo de mayor riesgo en las colisiones de tránsito, posiblemente debido a factores como una mayor exposición al volante, conductas de riesgo al conducir o una mayor siniestralidad en sectores laborales relacionados con el transporte.
+
+Por otro lado, la edad promedio de las víctimas es de 35.3 años, lo que refuerza la idea de que la población económicamente activa es la más afectada. La pirámide también revela una disminución progresiva de víctimas a partir de los 65 años, lo cual es consistente con una menor exposición al tránsito en edades avanzadas. Estos hallazgos son clave para orientar campañas de prevención, especialmente dirigidas a conductores jóvenes y adultos, y para diseñar políticas de seguridad vial que prioricen la protección de los grupos más vulnerables por edad y sexo.
+""")
+
+
     with st.expander("📄 Ver datos utilizados en los gráficos (primeras 20 filas)"):
         st.caption("Mostrando solamente 20 filas de las víctimas consideradas.")
         df_raw = get_raw_victims_sample(fecha_ini, fecha_fin)

@@ -51,10 +51,24 @@ def mostrar_criticidad(fecha_ini, fecha_fin):
     # ------------------------- TAB 1: Áreas de severidad -------------------------
     with tab1:
         st.plotly_chart(render_areas_severidad(df_areas), use_container_width=True)
+
+        st.markdown("""
+**Interpretación del gráfico:**
+
+Este gráfico de áreas muestra la evolución anual de los accidentes según su nivel de severidad entre 2018 y 2021. Se observa una tendencia general descendente en el número total de accidentes, con una caída particularmente pronunciada en 2020, que coincide con el inicio de la pandemia de COVID-19 y las medidas de confinamiento en California. Esta reducción afectó a todas las categorías de severidad, siendo más notoria en los casos de lesiones leves y solo daños materiales.
+
+Sin embargo, en 2021 se produce un repunte significativo en todas las categorías, especialmente en los accidentes con solo daños materiales, lo que sugiere una recuperación gradual de la movilidad y la actividad vial. Es importante destacar que los accidentes fatales y con lesiones graves, aunque también disminuyeron durante la pandemia, mostraron una recuperación menos pronunciada, lo que podría indicar que, pese al aumento del tráfico, las medidas de seguridad y la reducción de la velocidad en zonas urbanas pudieron haber mitigado la gravedad de los siniestros.
+
+Estos hallazgos reflejan cómo los factores externos, como las políticas de confinamiento y los cambios en los patrones de movilidad, impactan directamente en la siniestralidad vial, y subrayan la necesidad de mantener estrategias de prevención incluso en periodos de menor tráfico.
+ """)
+        
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.caption("Mostrando solamente 20 filas de colisiones (fecha y severidad).")
             df_raw = get_raw_areas_sample(fecha_ini, fecha_fin)
             st.dataframe(df_raw)
+
+    
+
 
     # ------------------------- TAB 2: Clima e Iluminación (barras agrupadas) -------------------------
     with tab2:
@@ -125,6 +139,17 @@ def mostrar_criticidad(fecha_ini, fecha_fin):
                 st.warning("No hay datos con los filtros seleccionados.")
         else:
             st.warning("No hay datos de superficie e iluminación para mostrar.")
+
+        st.markdown("""
+**Interpretación del gráfico:**
+
+Este gráfico de barras agrupadas permite comparar el número de accidentes según el tipo de superficie de la vía y las condiciones de iluminación. Se observa que la mayoría de los accidentes ocurren en superficies secas (dry), independientemente de la iluminación, lo que es esperable dado que esta condición es la más frecuente en California. Sin embargo, dentro de las superficies secas, los accidentes son significativamente más numerosos en condiciones de luz diurna (daylight) que en condiciones de oscuridad o penumbra.
+
+Un hallazgo relevante es que, en superficies mojadas (wet) o resbaladizas (slippery), la proporción de accidentes nocturnos (dark with street lights) aumenta notablemente, lo que sugiere que la combinación de baja adherencia y mala visibilidad es especialmente peligrosa. Estos resultados refuerzan la necesidad de extremar las precauciones al conducir en condiciones climáticas adversas y de mantener una iluminación adecuada en las vías, especialmente en zonas de alto tránsito y durante la noche.
+
+La categoría "Desconocido" (unknown) representa una proporción menor de casos, lo que indica una buena calidad del registro de datos.
+""")
+        
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_road_lighting.head(20))
 
@@ -161,6 +186,17 @@ def mostrar_criticidad(fecha_ini, fecha_fin):
                 st.warning("No hay datos con los filtros seleccionados.")
         else:
             st.warning("No hay datos de superficie e iluminación para mostrar.")
+
+        st.markdown("""
+**Interpretación del gráfico de burbujas:**
+
+Este gráfico de burbujas visualiza la relación entre el tipo de superficie de la vía, la condición de iluminación y el volumen de accidentes, donde el tamaño de cada burbuja representa la cantidad de siniestros. Se aprecia claramente que la combinación más crítica es la de "superficie seca con luz diurna" (dry + daylight), que concentra la mayor cantidad de accidentes, lo cual es consistente con la mayor exposición al tráfico durante el día.
+
+Sin embargo, al analizar las proporciones relativas, se observa que las superficies mojadas (wet) o con nieve (snowy) presentan burbujas de tamaño considerable incluso en condiciones de oscuridad, lo que indica un riesgo elevado en estas condiciones. Esto es especialmente preocupante porque implica que, aunque el volumen total de accidentes en condiciones adversas es menor, la probabilidad de que ocurran en situaciones de baja visibilidad es alta.
+
+Este análisis destaca la importancia de diseñar estrategias de seguridad vial diferenciadas según las condiciones de la vía y la iluminación, y sugiere que las campañas de prevención deberían enfatizar el riesgo en condiciones climáticas adversas, incluso cuando el tráfico es menor.
+""")
+        
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_road_lighting.head(20))
 
@@ -180,5 +216,18 @@ def mostrar_criticidad(fecha_ini, fecha_fin):
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("No hay datos de fatalidades en este periodo.")
+
+        st.markdown("""
+**Interpretación del gráfico:**
+
+La evolución mensual de las fatalidades por accidentes de tránsito entre 2018 y 2021 muestra un patrón estacional con picos en los meses de verano y una caída notable a partir de marzo de 2020, coincidiendo con el inicio de la pandemia. El punto más bajo se registra en abril de 2020, con una reducción de aproximadamente el 40% respecto a los mismos meses de años anteriores, lo que evidencia el efecto de las restricciones de movilidad en la reducción de la mortalidad vial.
+
+A partir de mediados de 2020 y durante todo 2021, se observa una recuperación gradual de las fatalidades, aunque sin alcanzar los niveles prepandemia. Esto sugiere que, si bien el tráfico se restableció, otros factores como el cambio en los hábitos de conducción, el mayor uso de modos de transporte alternativos o la implementación de medidas de seguridad vial pudieron haber contribuido a mantener las fatalidades por debajo de los niveles de 2018-2019.
+
+Este comportamiento resalta la sensibilidad de la siniestralidad vial a factores externos y la importancia de monitorear tendencias para diseñar políticas de prevención adaptadas a contextos cambiantes.
+""")
+        
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_tendencia.head(20))
+
+    
