@@ -85,13 +85,12 @@ Estos resultados evidencian que el equipo de seguridad es un factor determinante
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_sev_equipo.head(20))
 
-        with tab2:
-         if not df_tendencia.empty:
+    with tab2:
+        if not df_tendencia.empty:
             st.plotly_chart(render_tendencia_alcohol_mensual(df_tendencia), use_container_width=True)
-         else:
+        else:
             st.warning("No hay datos de tendencia de alcohol")
-        
-    st.markdown("""
+        st.markdown("""
 **Interpretación del gráfico:**
 
 Este gráfico de líneas muestra la evolución mensual de la cantidad de accidentes según la condición del conductor entre enero de 2018 y julio de 2021. Se observa que la categoría de conductores bajo la condición de "Sobrio" representa la mayor frecuencia absoluta de siniestralidad en la población, manteniéndose con fluctuaciones cíclicas estables en un rango de entre 50,000 y 70,000 accidentes mensuales.
@@ -100,7 +99,7 @@ Un aspecto destacable es el pronunciado descenso en la línea de conductores sob
 
 Estos resultados evidencian que el comportamiento de la siniestralidad base responde fuertemente a factores externos de movilidad general. Desde una perspectiva estadística y actuarial, aunque la frecuencia de la categoría "Con Alcohol" sea la menor en volumen de eventos, este análisis descriptivo debe complementarse con el estudio de la severidad y el costo promedio de los siniestros para lograr una correcta evaluación y modelación del riesgo.
 """)
-    with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
+        with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_tendencia)
 
     with tab3:
@@ -120,7 +119,6 @@ Estos resultados evidencian que el comportamiento de la siniestralidad base resp
                 st.warning("Selecciona al menos un condado.")
         else:
             st.warning("No hay datos de fatalidades en este periodo.")
-
         st.markdown("""
 **Interpretación del gráfico:**
 
@@ -152,7 +150,6 @@ Este análisis sugiere que las estrategias de prevención deben enfocarse en red
                 st.warning("Selecciona al menos un tipo de colisión.")
         else:
             st.warning("No hay datos suficientes para el boxplot.")
-
         st.markdown("""
 **Interpretación del gráfico de cajas:**
 
@@ -162,11 +159,9 @@ Los choques frontales (head-on) muestran la edad mediana más alta (alrededor de
 
 En general, estos resultados confirman que el perfil etario de las víctimas varía significativamente según el tipo de colisión, lo que subraya la necesidad de diseñar políticas de prevención diferenciadas por grupo de edad y tipo de siniestro.
 """)
-        
         with st.expander("📄 Ver estadísticos utilizados (min, Q1, mediana, Q3, max)"):
             st.dataframe(df_boxplot_stats)
 
-    # TAB 5: Vehículo vs Severidad (multiselect)
     with tab5:
         st.subheader("🚗 Comparación de Severidad por Tipo de Vehículo")
         df_vehicle_type = get_vehicle_type_severity(fecha_ini, fecha_fin)
@@ -198,7 +193,6 @@ Estos hallazgos son clave para diseñar políticas de seguridad vial diferenciad
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_vehicle_type.head(20))
 
-    # TAB 6: Año del Vehículo vs Severidad (sin cambios)
     with tab6:
         st.subheader("📅 Relación entre Año del Vehículo y Severidad")
         df_vehicle_year = get_vehicle_year_severity(fecha_ini, fecha_fin)
@@ -207,7 +201,6 @@ Estos hallazgos son clave para diseñar políticas de seguridad vial diferenciad
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("No hay datos de años de vehículo para mostrar.")
-
         st.markdown("""
 **Interpretación del gráfico:**
 
