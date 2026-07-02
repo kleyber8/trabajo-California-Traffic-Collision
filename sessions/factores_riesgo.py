@@ -73,15 +73,34 @@ def mostrar_factores_riesgo(fecha_ini, fecha_fin):
                 st.warning("Selecciona al menos un equipo.")
         else:
             st.warning("No hay datos para mostrar")
+        st.markdown("""
+**Interpretación del gráfico:**
+
+Este gráfico de barras agrupadas muestra la relación entre el equipo de seguridad utilizado por las víctimas y la severidad de las lesiones sufridas. Se observa que el uso del cinturón de seguridad (lap belt used y shoulder harness used) está asociado con una mayor proporción de lesiones leves y una reducción significativa de casos fatales, en comparación con aquellos que no usaron ningún equipo o cuyo airbag no se desplegó.
+
+Los casos fatales son más frecuentes en categorías como "air bag not deployed" y "lap/shoulder harness not used", lo que sugiere que la combinación de airbag y cinturón es crucial para la supervivencia en accidentes graves. Además, se aprecia que los motociclistas que no usan casco (driver, motorcycle helmet not used) presentan una proporción alarmantemente alta de lesiones graves y fatales, lo que refuerza la importancia de las campañas de uso obligatorio de casco.
+
+Estos resultados evidencian que el equipo de seguridad es un factor determinante en la gravedad de las lesiones, y que las políticas de uso obligatorio de cinturón y casco deben mantenerse y reforzarse, especialmente en grupos de alto riesgo como los motociclistas y los ocupantes de vehículos sin sistemas de retención adecuados.
+""")
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_sev_equipo.head(20))
 
-    with tab2:
-        if not df_tendencia.empty:
+        with tab2:
+         if not df_tendencia.empty:
             st.plotly_chart(render_tendencia_alcohol_mensual(df_tendencia), use_container_width=True)
-        else:
+         else:
             st.warning("No hay datos de tendencia de alcohol")
-        with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
+        
+    st.markdown("""
+**Interpretación del gráfico:**
+
+Este gráfico de líneas muestra la evolución mensual de la cantidad de accidentes según la condición del conductor entre enero de 2018 y julio de 2021. Se observa que la categoría de conductores bajo la condición de "Sobrio" representa la mayor frecuencia absoluta de siniestralidad en la población, manteniéndose con fluctuaciones cíclicas estables en un rango de entre 50,000 y 70,000 accidentes mensuales.
+
+Un aspecto destacable es el pronunciado descenso en la línea de conductores sobrios durante el primer semestre de 2020, alcanzando su punto mínimo histórico debido a las restricciones de movilidad por el confinamiento, para luego describir una tendencia de recuperación hacia su media habitual. Por otro lado, la categoría "Otro/Desconocido" muestra un comportamiento ligeramente ascendente en el tiempo, mientras que los accidentes registrados "Con Alcohol" se mantienen estables en el volumen más bajo de la muestra. Asimismo, la caída abrupta que se observa al cierre en julio de 2021 responde de manera típica a un sesgo por retraso en la consolidación de los datos (*reporting delay*).
+
+Estos resultados evidencian que el comportamiento de la siniestralidad base responde fuertemente a factores externos de movilidad general. Desde una perspectiva estadística y actuarial, aunque la frecuencia de la categoría "Con Alcohol" sea la menor en volumen de eventos, este análisis descriptivo debe complementarse con el estudio de la severidad y el costo promedio de los siniestros para lograr una correcta evaluación y modelación del riesgo.
+""")
+    with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_tendencia)
 
     with tab3:
@@ -101,6 +120,16 @@ def mostrar_factores_riesgo(fecha_ini, fecha_fin):
                 st.warning("Selecciona al menos un condado.")
         else:
             st.warning("No hay datos de fatalidades en este periodo.")
+
+        st.markdown("""
+**Interpretación del gráfico:**
+
+Este gráfico de barras agrupadas muestra la distribución de fatalidades por condado y factor de colisión. Se observa que los condados más poblados, como Alameda, Butte y Amador, concentran el mayor número de fatalidades, lo cual es consistente con su mayor densidad de tráfico y población. Sin embargo, al analizar los factores de colisión, se aprecia que las violaciones del código de vehículos (vehicle code violation) son el factor más frecuente en todos los condados, seguido de "other than driver" y "unknown".
+
+Un hallazgo relevante es que en condados con menor volumen de fatalidades, como Del Norte, la proporción de fatalidades atribuidas a factores desconocidos o de "other improper driving" es relativamente mayor, lo que podría indicar una menor calidad en el registro de datos o una mayor incidencia de accidentes con causas no claramente identificadas.
+
+Este análisis sugiere que las estrategias de prevención deben enfocarse en reducir las violaciones del código de vehículos, especialmente en los condados con mayor siniestralidad, y mejorar la calidad de los registros para identificar mejor las causas de los accidentes en zonas con menor densidad de tráfico.
+""")
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_barras.head(20))
 
@@ -157,6 +186,15 @@ En general, estos resultados confirman que el perfil etario de las víctimas var
                 st.warning("Selecciona al menos un tipo de vehículo.")
         else:
             st.warning("No hay datos de tipos de vehículo para mostrar.")
+        st.markdown("""
+**Interpretación del gráfico:**
+
+Este gráfico de barras agrupadas permite comparar la severidad de los accidentes según el tipo de vehículo involucrado. Se observa que los automóviles de pasajeros (passenger car) concentran la mayor cantidad de accidentes en todas las categorías de severidad, lo cual es consistente con su predominio en el parque automotor. Sin embargo, al analizar las proporciones relativas, se aprecia que las motocicletas (motorcycle or scooter) y los vehículos de construcción (highway construction) presentan una proporción significativamente mayor de accidentes fatales y con lesiones graves en comparación con los automóviles de pasajeros.
+
+Los camiones (truck o truck trailer) también muestran una proporción elevada de accidentes con lesiones graves, posiblemente debido a su mayor tamaño y peso, que incrementan la energía del impacto. Por otro lado, los vehículos de emergencia (emergency vehicle) y las bicicletas (bicycle) presentan volúmenes menores, pero con una proporción alta de lesiones graves, lo que refleja su alta vulnerabilidad en el tránsito.
+
+Estos hallazgos son clave para diseñar políticas de seguridad vial diferenciadas: campañas específicas para motociclistas y ciclistas, controles más estrictos para vehículos pesados, y mejoras en la infraestructura para proteger a los usuarios más vulnerables.
+""")
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_vehicle_type.head(20))
 
@@ -169,5 +207,15 @@ En general, estos resultados confirman que el perfil etario de las víctimas var
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("No hay datos de años de vehículo para mostrar.")
+
+        st.markdown("""
+**Interpretación del gráfico:**
+
+Este gráfico de áreas muestra la evolución de los accidentes según el año de fabricación del vehículo y la severidad de las lesiones. Se observa que los vehículos más antiguos (anteriores a 1990) presentan una mayor proporción de accidentes fatales y con lesiones graves, mientras que los vehículos más recientes (a partir de 2010) muestran una mayor proporción de accidentes con solo daños materiales o lesiones leves. Esto sugiere que los avances en seguridad vehicular, como airbags, sistemas de frenado ABS y estructuras de absorción de impactos, han contribuido a reducir la gravedad de las lesiones en los accidentes.
+
+Un hallazgo notable es el pico de accidentes en vehículos del año 2020, que coincide con el aumento del parque automotor y la recuperación post-pandemia. Sin embargo, la severidad en estos vehículos es menor que en los modelos más antiguos, lo que indica que, aunque el número de accidentes aumentó, la tecnología de seguridad ha mitigado su impacto.
+
+Estos resultados subrayan la importancia de mantener actualizado el parque automotor y de fomentar el uso de vehículos con sistemas de seguridad avanzados, especialmente en grupos de alto riesgo como los conductores jóvenes y las flotas de transporte.
+""")
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_vehicle_year.head(20))

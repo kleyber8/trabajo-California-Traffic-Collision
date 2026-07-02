@@ -103,6 +103,16 @@ Estos hallazgos reflejan cómo los factores externos, como las políticas de con
                 st.warning("No hay datos con los filtros seleccionados.")
         else:
             st.warning("No hay datos de clima e iluminación para mostrar.")
+
+        st.markdown("""
+**Interpretación del gráfico:**
+
+Este gráfico de barras agrupadas analiza la distribución de accidentes según las condiciones climáticas y el nivel de iluminación. Se observa que la gran mayoría de los accidentes ocurren en condiciones climáticas despejadas (clear) y con luz diurna (daylight), lo cual es consistente con la mayor exposición al tráfico durante el día y en buen clima. Sin embargo, al analizar las proporciones relativas, se aprecia que en condiciones de lluvia (raining), nieve (snowing) o niebla (fog), la proporción de accidentes nocturnos (dark with street lights) aumenta considerablemente.
+
+Esto sugiere que la combinación de condiciones climáticas adversas y baja visibilidad es especialmente peligrosa, y que los conductores tienden a reducir la velocidad o tomar rutas alternativas en estas condiciones, pero aún así los accidentes son más frecuentes de lo esperado. La categoría "Desconocido" (unknown) representa una proporción menor de casos, lo que indica una buena calidad del registro de datos.
+
+Estos hallazgos destacan la importancia de extremar las precauciones al conducir en condiciones climáticas adversas, especialmente durante la noche, y de mantener una iluminación adecuada en las vías, particularmente en zonas de alto tránsito y durante la temporada de lluvias.
+""")
         with st.expander("📄 Ver datos utilizados (primeras 20 filas)"):
             st.dataframe(df_weather_lighting.head(20))
 

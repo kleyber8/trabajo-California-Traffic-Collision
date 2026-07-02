@@ -109,6 +109,7 @@ def get_severidad_vs_equipo(fecha_ini: str, fecha_fin: str):
     WHERE v.victim_safety_equipment_1 IS NOT NULL
       AND v.victim_degree_of_injury IS NOT NULL
       AND CAST(c.collision_date AS DATE) BETWEEN '{fecha_ini}' AND '{fecha_fin}'
+      AND v.victim_safety_equipment_1 NOT IN ('0', '1', '2', '3', '4', '5', 'O', 'Z', ',')
     GROUP BY equipo, severidad
     """
     return ejecutar_consulta(sql)
