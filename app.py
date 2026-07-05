@@ -1,6 +1,6 @@
 import streamlit as st
 from utils.database import ejecutar_consulta_limitada, get_global_date_range
-from sessions import Introduccion, consultas_profesor, marco_metodologico, dict_DB, criticidad_temporal, delimitacion, delta_lake, demografia, ejemplo_filtrado, factores_riesgo
+from sessions import Introduccion, consultas_profesor, marco_metodologico, dict_DB, criticidad_temporal, delimitacion, delta_lake, demografia, ejemplo_filtrado, factores_riesgo, conclusiones
 
 st.set_page_config(page_title="SWITRS California", page_icon="🚗", layout="wide")
 
@@ -29,13 +29,13 @@ def cambiar_pag_ing(): st.session_state.pagina_actual = st.session_state.nav_ing
 with st.sidebar:
     st.markdown("# 🚗 SWITRS Analítica")
     st.markdown("---")
-    ver_pres = st.session_state.pagina_actual in ["Presentación", "Introducción", "Marco Metodológico" "Diccionario de datos"]
+    ver_pres = st.session_state.pagina_actual in ["Presentación", "Introducción", "Marco Metodológico", "Diccionario de datos", "Conclusiones"]
     ver_expl = st.session_state.pagina_actual in ["Perfil Demográfico", "Criticidad Temporal", "Factores de Riesgo"]
     ver_query = st.session_state.pagina_actual in ["Querys", "Querys de filtrado"]
     ver_ing = st.session_state.pagina_actual in ["Delta Lake", "Delimitacion de datos"]
 
     with st.expander("📖 1. Presentación", expanded=ver_pres):
-        opciones_pres = ["Presentación", "Introducción", "Marco Metodológico", "Diccionario de datos"]
+        opciones_pres = ["Presentación", "Introducción", "Marco Metodológico", "Diccionario de datos", "Conclusiones"]
         idx_pres = opciones_pres.index(st.session_state.pagina_actual) if st.session_state.pagina_actual in opciones_pres else 0
         opcion_pres = st.radio("Menú Presentación:", opciones_pres, index=idx_pres, key="nav_pres", on_change=cambiar_pag_pres, label_visibility="collapsed")
         if st.session_state.pagina_actual in opciones_pres:
@@ -136,6 +136,8 @@ elif opcion == "Marco Metodológico":
 elif opcion == "Diccionario de datos":
     st.image("assets/Introducción (2).png", use_container_width=True)
     dict_DB.mostrar_diccionario_datos()
+elif opcion == "Conclusiones":
+    conclusiones.mostrar_conclusiones()
 elif opcion == "Perfil Demográfico":
     demografia.mostrar_demografia(fecha_ini, fecha_fin)
 elif opcion == "Criticidad Temporal":
