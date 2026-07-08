@@ -1,10 +1,14 @@
 import plotly.express as px
 import pandas as pd
 
-GOLD = "#D4AF37"
-COFFEE = "#4B3621"
-DARK_BG = "#121212"
-TEXT_COLOR = "#FFFFFF"
+# PALETA DE COLORES CINESTÉSICA (DORADO & MODO OSCURO)
+
+GOLD = "#D4AF37"          
+GOLD_LIGHT = "#E6C687"    
+CREMA = "#F4EBD0"         
+TEXT_COLOR = "#FFFFFF"    
+DARK_BG = "#121212"       
+GRID_COLOR = "#2B261D"
 
 def render_piramide_poblacional(df_agregado):
     df_pivot = df_agregado.pivot(index='rango_edad', columns='victim_sex', values='cantidad').fillna(0)
@@ -16,26 +20,26 @@ def render_piramide_poblacional(df_agregado):
     df_plot['rango_edad'] = pd.Categorical(df_plot['rango_edad'], categories=edad_order, ordered=True)
     
     fig = px.bar(df_plot, x='Cantidad', y='rango_edad', color='victim_sex',
-                 orientation='h', color_discrete_map={'female': GOLD, 'male': COFFEE},
+                 orientation='h', color_discrete_map={'female': GOLD, 'male': GOLD_LIGHT},
                  labels={'rango_edad': 'Rango de Edad', 'Cantidad': 'Cantidad de Víctimas'})
     fig.update_layout(
         title=dict(text='Distribución Poblacional de Víctimas', font=dict(color=GOLD, size=20)),
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE),
-        xaxis=dict(title='Cantidad', tickformat=',d', gridcolor="#333333"),
-        yaxis=dict(gridcolor="#333333", title=None),
+        font=dict(color=CREMA),
+        xaxis=dict(title='Cantidad', tickformat=',d', gridcolor=GRID_COLOR, tickfont=dict(color=CREMA)),
+        yaxis=dict(gridcolor=GRID_COLOR, title=None, tickfont=dict(color=CREMA)),
         legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
     )
     return fig
 
 def render_distribucion_sexo(df_agregado):
     fig = px.pie(df_agregado, values='total', names='genero', hole=0.5,
-                 color='genero', color_discrete_map={'Female': GOLD, 'Male': COFFEE})
+                 color='genero', color_discrete_map={'Female': GOLD, 'Male': GOLD_LIGHT})
     fig.update_traces(textfont_color=TEXT_COLOR,
                       marker=dict(line=dict(color=DARK_BG, width=2)))
     fig.update_layout(
         title=dict(text='Participación por Género', font=dict(color=GOLD, size=18)),
-        paper_bgcolor='rgba(0,0,0,0)', font=dict(color=COFFEE),
+        paper_bgcolor='rgba(0,0,0,0)', font=dict(color=CREMA),
         legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
     )
     return fig

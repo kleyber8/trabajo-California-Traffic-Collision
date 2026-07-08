@@ -120,7 +120,7 @@ if opcion == "Presentación":
         </p>
     </div>
     """, unsafe_allow_html=True)
-    st.image("assets/Copia de Introducción (1).png", caption="Análisis Estadístico del Sistema de Registro de Colisiones de California", use_container_width=True)
+    st.image("assets/analisis.png", caption="Análisis Estadístico del Sistema de Registro de Colisiones de California", use_container_width=True)
     st.markdown(f"<div style='text-align: center; color: #FFFFFF; font-size: 18px;'>Entorno: <span style='color: #D4AF37;'>{filtro_etapa}</span> ({fecha_ini} a {fecha_fin})</div>", unsafe_allow_html=True)
     sql_muestra = f"SELECT * FROM collisions WHERE collision_date BETWEEN '{fecha_ini}' AND '{fecha_fin}' LIMIT 50"
     df_muestra = ejecutar_consulta_limitada(sql_muestra, limite=50)
@@ -128,15 +128,17 @@ if opcion == "Presentación":
     st.caption("Mostrando primeras 50 filas del periodo seleccionado.")
 
 elif opcion == "Introducción":
+    st.image("assets/introducción.png", use_container_width=True)
     Introduccion.mostrar_introduccion()
     
 elif opcion == "Marco Metodológico":
-    st.image("assets/Introducción (3).png", use_container_width=True)
+    st.image("assets/metodologico.png", use_container_width=True)
     marco_metodologico.mostrar_marco_metodologico()
 elif opcion == "Diccionario de datos":
-    st.image("assets/Introducción (2).png", use_container_width=True)
+    st.image("assets/diccionario.png", use_container_width=True)
     dict_DB.mostrar_diccionario_datos()
 elif opcion == "Conclusiones":
+    st.image("assets/conclusiones_real.png", use_container_width=True)
     conclusiones.mostrar_conclusiones()
 elif opcion == "Perfil Demográfico":
     demografia.mostrar_demografia(fecha_ini, fecha_fin)
@@ -145,16 +147,20 @@ elif opcion == "Criticidad Temporal":
 elif opcion == "Factores de Riesgo":
     factores_riesgo.mostrar_factores_riesgo(fecha_ini, fecha_fin)
 elif opcion == "Delta Lake":
+    st.image("assets/delta lake.png", use_container_width=True)
     delta_lake.mostrar_delta_lake()
 elif opcion == "Delimitacion de datos":
+    st.image("assets/delimitacion.png", use_container_width=True)
     delimitacion.mostrar_delimitacion()
 elif opcion == "Querys":
     import importlib
     import sessions.consultas_profesor as consultas
     importlib.reload(consultas)
     consultas.mostrar_consultas()
+    st.image("assets/querys.png", use_container_width=True)
 elif opcion == "Querys de filtrado":
     import importlib
     import sessions.ejemplo_filtrado as filtrado
     importlib.reload(filtrado)
+    st.image("assets/filtrado.png", use_container_width=True)
     filtrado.mostrar_querys_filtrado()

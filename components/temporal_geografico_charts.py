@@ -1,25 +1,42 @@
 import plotly.express as px
 import pandas as pd
 
-GOLD = "#D4AF37"
-COFFEE = "#4B3621"
-DARK_BG = "#121212"
-TEXT_COLOR = "#FFFFFF"
+# PALETA DE COLORES CINESTÉSICA (DORADO & MODO OSCURO)
+GOLD = "#D4AF37"              
+GOLD_DARK = "#9A7B3E"  
+GOLD_LIGHT = "#E6C687"
+GOLD_MUTED = "#C5A059"  
+CREMA = "#F4EBD0"         
+TEXT_COLOR = "#FFFFFF"    
+DARK_BG = "#121212"       
+GRID_COLOR = "#2B261D"
+TERRACOTA = "#bc6c25"       
+CREMA_CLARO = "#fdfcdc"   
+VAINILLA = "#faedcd"      
+GRIS_OSCURO = "#444444"   
+AZUL_PROFUNDO = "#004e89" 
+
+# Escala secuencial de dorados para gráficos de barras y mapas térmicos
+PALETA_DORADOS = [GOLD_DARK, TERRACOTA, AZUL_PROFUNDO, GOLD]
+DEGRADADO_BURBUJAS = [AZUL_PROFUNDO, GOLD_DARK, CREMA_CLARO, GOLD]
 
 def render_areas_severidad(df_agregado):
     fig = px.area(df_agregado, x='anio', y='conteo', color='severidad',
                   color_discrete_map={
-                      'Fatal': COFFEE, 'Lesión Grave': '#8B4513',
-                      'Lesión Leve': '#CD853F', 'Solo Daños': GOLD, 'Otro': '#666666'
+                      'Solo Daños': GOLD_DARK, 
+                      'Lesión Leve': GOLD_MUTED,
+                      'Lesión Grave': GOLD_LIGHT, 
+                      'Fatal': GOLD, 
+                      'Otro': '#444444'
                   },
                   line_shape='linear')
     fig.update_layout(
         title=dict(text='Evolución de Accidentes por Severidad', font=dict(color=GOLD)),
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE),
-        xaxis=dict(title='Año', dtick=1, gridcolor='#333', tickfont=dict(color=COFFEE)),
-        yaxis=dict(title='Cantidad de Accidentes', gridcolor='#333', tickfont=dict(color=COFFEE)),
-        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
+        font=dict(color=CREMA),
+        xaxis=dict(title='Año', dtick=1, gridcolor='#333', tickfont=dict(color=CREMA)),
+        yaxis=dict(title='Cantidad de Accidentes', gridcolor='#333', tickfont=dict(color=CREMA)),
+        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD, borderwidth=1)
     )
     return fig
 
@@ -36,30 +53,30 @@ def render_radar_factores(df_pre, df_pan):
     df_radar = pd.DataFrame(data)
     fig = px.line_polar(df_radar, r='Porcentaje', theta='Factor', color='Periodo',
                         line_close=True,
-                        color_discrete_map={'Pre-pandemia': COFFEE, 'Pandemia': GOLD})
+                        color_discrete_map={'Pre-pandemia': GOLD_MUTED, 'Pandemia': GOLD})
     fig.update_layout(
         title=dict(text='Factores de Riesgo: Pre‑pandemia vs Pandemia', font=dict(color=GOLD)),
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE),
+        font=dict(color=CREMA),
         polar=dict(
-            radialaxis=dict(visible=True, range=[0, 100], color=COFFEE, gridcolor='#333'),
-            angularaxis=dict(color=COFFEE, gridcolor='#333')
+            radialaxis=dict(visible=True, range=[0, 100], color=CREMA, gridcolor=GRID_COLOR),
+            angularaxis=dict(color=CREMA, gridcolor= GRID_COLOR)
         ),
-        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
+        legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD, borderwidth=1)
     )
     return fig
 
 def render_waterfall_anual(df_agregado):
     fig = px.bar(df_agregado, x='anio', y='cambio', text='cambio',
                  color=['positivo' if x>=0 else 'negativo' for x in df_agregado['cambio']],
-                 color_discrete_map={'positivo': GOLD, 'negativo': COFFEE})
-    fig.update_traces(textposition='outside')
+                 color_discrete_map={'positivo': GOLD, 'negativo': GOLD_DARK})
+    fig.update_traces(textposition='outside', textfont=dict(color=CREMA))
     fig.update_layout(
         title=dict(text='Cambio Interanual de Accidentes', font=dict(color=GOLD)),
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE),
-        xaxis=dict(title='Año', gridcolor='#333', tickfont=dict(color=COFFEE)),
-        yaxis=dict(title='Cambio en Cantidad', gridcolor='#333', tickfont=dict(color=COFFEE)),
+        font=dict(color=CREMA),
+        xaxis=dict(title='Año', gridcolor='#333', tickfont=dict(color=CREMA)),
+        yaxis=dict(title='Cambio en Cantidad', gridcolor='#333', tickfont=dict(color=CREMA)),
         showlegend=False
     )
     return fig
@@ -76,6 +93,9 @@ def render_scatter_animado(df_agregado):
         paper_bgcolor='rgba(0,0,0,0)', font=dict(color=TEXT_COLOR),
         legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
     )
+    # Cambiar el color de los textos del slider de animación
+    fig.layout.sliders[0].currentvalue.font.color = CREMA
+    fig.layout.sliders[0].font.color = CREMA
     return fig
 
 def render_tendencia_fatalidades(df_agregado):
@@ -88,13 +108,14 @@ def render_tendencia_fatalidades(df_agregado):
         markers=True,
         line_shape='linear'
     )
+    fig.update_traces(line=dict(color=GOLD, width=3), marker=dict(color=GOLD_LIGHT, size=6))
     fig.update_layout(
+        title=dict(text='Evolución de Fatalidades en el Tiempo', font=dict(color=GOLD, size=16)),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE),
-        xaxis=dict(title='Fecha', gridcolor='#333'),
-        yaxis=dict(title='Número de Fatalidades', gridcolor='#333'),
-        title=dict(font=dict(color=GOLD))
+        font=dict(color=CREMA),
+        xaxis=dict(title='Fecha', gridcolor=GRID_COLOR, tickfont=dict(color=CREMA)),
+        yaxis=dict(title='Número de Fatalidades', gridcolor=GRID_COLOR, tickfont=dict(color=CREMA))
     )
     return fig
 
@@ -106,13 +127,13 @@ def render_weather_lighting_grouped_bar(df_agregado):
                  barmode='group',
                  title='Accidentes por Condición Climática e Iluminación',
                  labels={'weather_1': 'Condición Climática', 'conteo': 'Número de Accidentes', 'lighting': 'Iluminación'},
-                 color_discrete_sequence=px.colors.qualitative.Set2)
+                 color_discrete_sequence=PALETA_DORADOS)
     fig.update_layout(
         title=dict(text='Accidentes por Condición Climática e Iluminación', font=dict(color=GOLD)),
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE),
-        xaxis=dict(title='Condición Climática', gridcolor='#333', tickfont=dict(color=COFFEE), tickangle=-45),
-        yaxis=dict(title='Número de Accidentes', gridcolor='#333', tickfont=dict(color=COFFEE)),
+        font=dict(color=CREMA),
+        xaxis=dict(title='Condición Climática', gridcolor=GRID_COLOR, tickfont=dict(color=CREMA), tickangle=-45),
+        yaxis=dict(title='Número de Accidentes', gridcolor=GRID_COLOR, tickfont=dict(color=CREMA)),
         legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
     )
     return fig
@@ -125,13 +146,13 @@ def render_road_lighting_grouped_bar(df_agregado):
                  barmode='group',
                  title='Accidentes por Tipo de Superficie de la Vía e Iluminación',
                  labels={'road_surface': 'Superficie de la Vía', 'conteo': 'Número de Accidentes', 'lighting': 'Iluminación'},
-                 color_discrete_sequence=px.colors.qualitative.Set2)
+                 color_discrete_sequence=PALETA_DORADOS)
     fig.update_layout(
         title=dict(text='Accidentes por Tipo de Superficie de la Vía e Iluminación', font=dict(color=GOLD)),
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE),
-        xaxis=dict(title='Superficie de la Vía', gridcolor='#333', tickfont=dict(color=COFFEE), tickangle=-45),
-        yaxis=dict(title='Número de Accidentes', gridcolor='#333', tickfont=dict(color=COFFEE)),
+        font=dict(color=CREMA),
+        xaxis=dict(title='Superficie de la Vía', gridcolor=GRID_COLOR , tickfont=dict(color=CREMA), tickangle=-45),
+        yaxis=dict(title='Número de Accidentes', gridcolor=GRID_COLOR , tickfont=dict(color=CREMA)),
         legend=dict(font=dict(color=TEXT_COLOR), bgcolor=DARK_BG, bordercolor=GOLD)
     )
     return fig
@@ -151,7 +172,7 @@ def render_road_lighting_bubble(df_agregado):
         y='road_surface',
         size='conteo',
         color='conteo',
-        color_continuous_scale='Plasma',  # escala más vistosa
+        color_continuous_scale=DEGRADADO_BURBUJAS,  # escala más vistosa
         size_max=70,                      # burbujas más grandes
         title='Relación entre Superficie de la Vía e Iluminación en Accidentes',
         labels={
@@ -164,7 +185,7 @@ def render_road_lighting_bubble(df_agregado):
     # Mejorar diseño
     fig.update_traces(
         marker=dict(
-            line=dict(width=1, color='white'),
+            line=dict(width=1, color=DARK_BG),
             opacity=0.8
         )
     )
@@ -176,17 +197,17 @@ def render_road_lighting_bubble(df_agregado):
         ),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color=COFFEE, size=12),
+        font=dict(color=CREMA, size=12),
         xaxis=dict(
             title=dict(font=dict(color=GOLD)),
-            gridcolor='#333333',
-            tickfont=dict(color=COFFEE),
+            gridcolor=GRID_COLOR,
+            tickfont=dict(color=CREMA),
             tickangle=-45
         ),
         yaxis=dict(
             title=dict(font=dict(color=GOLD)),
-            gridcolor='#333333',
-            tickfont=dict(color=COFFEE)
+            gridcolor=GRID_COLOR,
+            tickfont=dict(color=CREMA)
         ),
         legend=dict(
             title=dict(text='Nº Accidentes', font=dict(color=GOLD)),
@@ -197,7 +218,7 @@ def render_road_lighting_bubble(df_agregado):
         ),
         coloraxis_colorbar=dict(
             title='Accidentes',
-            tickfont=dict(color=COFFEE),
+            tickfont=dict(color=CREMA),
             title_font=dict(color=GOLD)
         )
     )

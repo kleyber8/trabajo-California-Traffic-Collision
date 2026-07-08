@@ -62,7 +62,7 @@ def mostrar_marco_metodologico():
     st.markdown("## 1.4 Enfoque de la Investigación")
     
     # Cuadro destacado para el Objetivo General
-    st.info("""
+    st.warning("""
     🎯 **Objetivo General** Desarrollar un análisis de datos sobre la siniestralidad vial en California (2018-2021), centrado en la identificación de perfiles de vulnerabilidad y factores de riesgo mediante arquitecturas analíticas modernas.
     """)
 
@@ -75,7 +75,7 @@ def mostrar_marco_metodologico():
 
     st.markdown("### Objetivos Específicos")
     
-    # Lista organizada con negritas estratégicas para los campos de datos
+    # Lista organizada para los campos de datos
     st.markdown("""
     1. **Analizar el perfil demográfico de las víctimas:** Construir una pirámide de mortalidad segmentada por edad (`victim_age`) y sexo (`victim_sex`) para identificar qué grupos poblacionales sufren mayor impacto en colisiones fatales.
     2. **Determinar factores externos determinantes de una colisión:** Evaluar cuantitativamente el impacto de las conductas de riesgo (`cellphone_in_use`, `party_sobriety`, entre otros) y la eficacia del equipo de seguridad (`victim_safety_equipment`) en la severidad de las lesiones y la ocurrencia de víctimas fatales.
