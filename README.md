@@ -65,13 +65,12 @@ Detalle demográfico y físico de las personas afectadas.
 
 El proyecto utiliza varias herramientas para el análisis y visualización de datos:
 
-SQLite -> Manipulación y consultas de datos
-
-Python -> Limpieza, análisis y procesamiento de datos
-
-Streamlit -> Desarrollo de la aplicación interactiva
-
-Power BI -> Creación del dashboard de visualización
+- SQLite -> Manipulación y consultas de datos (solo en fase de exploración inicial).
+- Python -> Limpieza, análisis y procesamiento de datos.
+- Streamlit -> Desarrollo de la aplicación interactiva.
+- Plotly -> Gráficos interactivos.
+- DuckDB / MotherDuck -> Motor de consultas en la nube (sin necesidad de infraestructura local).
+- Power BI -> Dashboard de visualización (desplegado en Power BI Service).
 
 ---
 
@@ -82,12 +81,11 @@ Sigue estos pasos para replicar el análisis y visualizar los dashboards en tu e
 ### 1. Requisitos Previos
 
 Asegúrate de tener instalado:
--Python 3.8+
--Java 8.0 o superior.
--hadoop.
--SQLite.
+- Python 3.8+
+- SQLite
+- (Opcional) Para procesamiento local con Delta Lake: Java 8+ y Hadoop (solo en Windows).
 
-> **NOTA**: La instalacion del Hadoop solo es necesaria en Windows ya que pyspark y delta-spark estan diseñados para Linux, por lo tanto no se generan estos problemas en las diversas distribuciones de Linux
+> **NOTA**: La instalación de Hadoop y PySpark solo es necesaria si planeas trabajar con Delta Lake localmente. Para ejecutar la aplicación en Streamlit Cloud, no requieres estos pasos.
 
 **PROCEDIMIENTO**: Descarga los archivos de instalación de la carpeta */Hadoop 3.3.5/bin necesarios (winutils.exe y hadoop.dll) en el siguiente repositorio público:
 [Repo de Hadoop-3.3.5](https://github.com/cdarlint/winutils/tree/master/hadoop-3.3.5/bin)
@@ -95,7 +93,6 @@ Asegúrate de tener instalado:
 Pasos para configurar las rutas dentro del entorno de variables:
 
 1. Crear en el disco local dos carpetas para alojar los archivos previamente instalado, de la siguiente forma (`hadoop/bin`).
-
 2. Busca "Editar las variables de entorno del sistema"
 3. Haz clic en Variables de entorno.
 4. En Variables del sistema, haz clic en Nueva.
@@ -112,25 +109,34 @@ Es un formato de almacenamiento que combina lo mejor de los Data Warehouses (ord
 
 Debido a que no es posible subir la BD de SWITRS completa se utilizaron parquets (100.000 filas) de cada tabla a modo de ejemplo, de esta manera y utilizando el delta lake se guardo un registro/versiones de todos los cambios y filtrados que se realizaronn en la BD original
 
-### 3. Instalación de Dependencias
+### 3. Instalación de Dependencias (producción)
 
-Clona este repositorio y ejecuta el siguiente comando en tu terminal para instalar las librerías necesarias para Streamlit:
-pip install -r requirements.txt
+Crea un entorno virtual e instala las dependencias mínimas para ejecutar la app:
 
-> Nota: El archivo requirements.txt incluye: pandas, pyspark, delta-spark, streamlit, plotly sqlite3,os,sys,plotly.express,plotly.graph_objets,numpy,utils y matplotlib.  
+    python -m venv venv
+    source venv/bin/activate  # En Windows: venv\\Scripts\\activate
+    pip install -r requirements.txt
 
-### 4. Visualización de la App (Streamlit)
+### 4. Configuración de secretos (local)
+
+Crea un archivo .streamlit/secrets.toml con el siguiente contenido:
+
+    motherduck = {token = "TU_TOKEN_DE_MOTHERDUCK"}
+
+### 5. Visualización de la App (Streamlit)
 
 Para lanzar la aplicación interactiva, usa:
-streamlit run app.py
 
-Para ver nuestro proyecto usa este link: [SWITRS](https://zombiuwu-trabajo-california-traffic-collision-app-nlucar.streamlit.app/)
+    streamlit run app.py
 
-### 5. Dashboard de Inteligencia de Negocios (Power BI)
+Para ver nuestro proyecto usa este link: [SWITRS](https://trabajo-california-traffic-collision-gxndtekyuctd3wsiddvwg3.streamlit.app/)
+
+### 6. Dashboard de Inteligencia de Negocios (Power BI)
 
 Puedes observar el dashboard de este trabajo desplegado en power bi, en el siguiente link:
 
 https://app.powerbi.com/view?r=eyJrIjoiMjIxNTU2ZGYtNzMyYy00NmQyLWIxMGYtMTMyMDAzMDE0MzNkIiwidCI6IjRjODE4Zjc5LWFiODQtNDU1Mi05YjdjLTJmZTcxNWIwZDBkNSIsImMiOjR9
+
 ---
 
 ## Lógica detrás de la delimitación de la data
@@ -145,27 +151,46 @@ Posteriormente, se seleccionaron únicamente los incidentes de los últimos cuat
 
 Para mantener el orden que definimos, la carpeta de GitHub debería verse así:
 
-├── components/    #Elementos visuales aislados (gráficos, tablas, filtros).
+    ├── components/               # Elementos visuales aislados (gráficos, tablas, filtros).
+    ├── sessions/                 # Estructuras que organizan los componentes.
+    ├── tests/                    # Pruebas unitarias (pytest)
+    ├── locustfile.py             # Pruebas de estrés (Locust)
+    ├── .streamlit/               # Configuración de secretos (no subir)
+    │   └── secrets.toml          # (ejemplo, no subir a GitHub)
+    ├── .gitignore/
+    ├── .gitattributes/
+    ├── data/                     # Archivos parquets con la data (2018-2021)
+    ├── app.py                    # Código principal de la App de Streamlit
+    ├── pruebas.ipynb             # Código de testeo de las funciones y gráficas
+    ├── utils/                    # Scripts de limpieza y procesamiento
+    ├── dashboardd/               # Archivo .pbix de Power BI
+    ├── requirements.txt          # Listado de librerías de Python
+    ├── requirements-full.txt     # (opcional) Dependencias completas (incluye testing y desarrollo)
+    └── README.md                 # Este archivo
 
-├── sections/         #Estructuras que organizan los componentes.
+---
 
-├── .gitignore/
+## Pruebas (Testing)
 
-├── .gitattributes/
+El proyecto incluye un conjunto de pruebas para garantizar el correcto funcionamiento de la aplicación:
 
-├── data/               # Archivos parquets con la data (2018-2021)
+### Pruebas unitarias (pytest)
 
-├── app.py              # Código principal de la App de Streamlit
+    pytest tests/test_pages.py -v
 
-├── pruebas.ipynb  #Código de testeo de las funciones y gráficas
+### Pruebas de estrés (Locust)
 
-├── utils/              # Scripts de limpieza y procesamiento
+Primero, ejecuta la aplicación localmente:
 
-├── dashboardd/          # Archivo .pbix de Power BI
+    streamlit run app.py
 
-├── requirements.txt    # Listado de librerías de Python
+Luego, en otra terminal, ejecuta:
 
-└── README.md           # Este archivo
+    locust -f locustfile.py --headless -u 10 -r 2 --host http://localhost:8501
+
+O con interfaz web:
+
+    locust -f locustfile.py --host http://localhost:8501
 
 ---
 
@@ -186,6 +211,3 @@ Proyecto realizado por estudiantes del segundo semestre de la carrera de Estadí
 - Zadquiel Nieves
 
 - Sebastian Valbuena
-
-### Fecha de vencimiento
-**Junio de 2026**
