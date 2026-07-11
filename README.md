@@ -125,11 +125,13 @@ Crea un archivo .streamlit/secrets.toml con el siguiente contenido:
 
 ### 5. Visualización de la App (Streamlit)
 
-Para lanzar la aplicación interactiva, usa:
+Para lanzar la aplicación interactiva localmente, usa:
 
     streamlit run app.py
 
-Para ver nuestro proyecto usa este link: [SWITRS](https://trabajo-california-traffic-collision-gxndtekyuctd3wsiddvwg3.streamlit.app/)
+Puedes ver nuestro proyecto desplegado en la nube en el siguiente link:
+
+[Acceder a la App - SWITRS](https://trabajo-california-traffic-collision-gxndtekyuctd3wsiddvwg3.streamlit.app/)
 
 ### 6. Dashboard de Inteligencia de Negocios (Power BI)
 
