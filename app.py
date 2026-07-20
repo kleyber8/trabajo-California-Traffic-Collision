@@ -127,8 +127,9 @@ if opcion == "Presentación":
     st.dataframe(df_muestra, use_container_width=True)
     st.caption("Mostrando primeras 50 filas del periodo seleccionado.")
 
+
 elif opcion == "Introducción":
-    st.image("assets/introducción.png", use_container_width=True)
+    st.image("assets/introduccion.png", use_container_width=True)
     Introduccion.mostrar_introduccion()
     
 elif opcion == "Marco Metodológico":

@@ -129,14 +129,12 @@ Para lanzar la aplicación interactiva, usa:
 
     streamlit run app.py
 
-Para ver nuestro proyecto usa este link: [SWITRS](https://trabajo-california-traffic-collision-gxndtekyuctd3wsiddvwg3.streamlit.app/)
+Para ver nuestro proyecto usa este link: [**Análisis  de Siniestralidad en California**](https://trabajo-california-traffic-collision-gxndtekyuctd3wsiddvwg3.streamlit.app/)
 
 ### 6. Dashboard de Inteligencia de Negocios (Power BI)
 
-Puedes observar el dashboard de este trabajo desplegado en power bi, en el siguiente link:
-
-https://app.powerbi.com/view?r=eyJrIjoiMjIxNTU2ZGYtNzMyYy00NmQyLWIxMGYtMTMyMDAzMDE0MzNkIiwidCI6IjRjODE4Zjc5LWFiODQtNDU1Mi05YjdjLTJmZTcxNWIwZDBkNSIsImMiOjR9
-
+Puedes observar el dashboard de este trabajo desplegado en power bi, en el siguiente link: [**Dashboard SWITRS en Power BI**](https://app.powerbi.com/view?r=eyJrIjoiMjIxNTU2ZGYtNzMyYy00NmQyLWIxMGYtMTMyMDAzMDE0MzNkIiwidCI6IjRjODE4Zjc5LWFiODQtNDU1Mi05YjdjLTJmZTcxNWIwZDBkNSIsImMiOjR9
+)
 ---
 
 ## Lógica detrás de la delimitación de la data
