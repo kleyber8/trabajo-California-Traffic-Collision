@@ -129,7 +129,7 @@ if opcion == "Presentación":
 
 
 elif opcion == "Introducción":
-    st.image("assets/introduccion.png", use_container_width=True)
+    st.image("assets/introduccion_proyecto.png", use_container_width=True)
     Introduccion.mostrar_introduccion()
     
 elif opcion == "Marco Metodológico":
