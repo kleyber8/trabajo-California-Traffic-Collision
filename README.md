@@ -137,7 +137,7 @@ Puedes ver nuestro proyecto desplegado en la nube en el siguiente link:
 
 Puedes observar el dashboard de este trabajo desplegado en power bi, en el siguiente link: 
 
-[📊**Dashboard SWITRS en Power BI**](https://app.powerbi.com/view?r=eyJrIjoiMjIxNTU2ZGYtNzMyYy00NmQyLWIxMGYtMTMyMDAzMDE0MzNkIiwidCI6IjRjODE4Zjc5LWFiODQtNDU1Mi05YjdjLTJmZTcxNWIwZDBkNSIsImMiOjR9
+[📊**Dashboard SWITRS en Power BI**]([https://app.powerbi.com/view?r=eyJrIjoiMjIxNTU2ZGYtNzMyYy00NmQyLWIxMGYtMTMyMDAzMDE0MzNkIiwidCI6IjRjODE4Zjc5LWFiODQtNDU1Mi05YjdjLTJmZTcxNWIwZDBkNSIsImMiOjR9](https://app.powerbi.com/view?r=eyJrIjoiMjIxNTU2ZGYtNzMyYy00NmQyLWIxMGYtMTMyMDAzMDE0MzNkIiwidCI6IjRjODE4Zjc5LWFiODQtNDU1Mi05YjdjLTJmZTcxNWIwZDBkNSIsImMiOjR9)
 )
 
 ---
